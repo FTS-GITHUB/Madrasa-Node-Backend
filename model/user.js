@@ -27,6 +27,9 @@ const userSchema = new mongoose.Schema({
     address: {
         type: String,
     },
+    bio: {
+        type: String,
+    },
     password: {
         type: String,
         minlength: [8, "Password minimum length must be 8 characters"],
@@ -85,15 +88,7 @@ const userSchema = new mongoose.Schema({
     }
 }, {
     timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
 })
-
-// userSchema.virtual("certificate", {
-//     ref: "certificate",
-//     localField: "_id",
-//     foreignField: "certificator",
-// });
 
 userSchema.methods.createEmailVerifyToken = async function () {
     let token;
