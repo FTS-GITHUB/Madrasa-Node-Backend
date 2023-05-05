@@ -68,24 +68,10 @@ const userSchema = new mongoose.Schema({
         type: String,
     },
     role: {
-        type: String,
-        enum: {
-            values: [
-                "superadmin",
-                "admin",
-                "client",
-                "contractor",
-                "engineer"
-            ],
-            message:
-                "Role Must be superadmin, admin or client , contractor , engineer",
-        },
-        required: [true, "Role is required"],
+        type: mongoose.Schema.Types.ObjectUd,
+        ref : "role"
     },
-    archived: {
-        type: Boolean,
-        default: false,
-    }
+    
 }, {
     timestamps: true,
 })
