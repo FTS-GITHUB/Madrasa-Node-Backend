@@ -8,12 +8,10 @@ const transactionController = require("./transaction");
 
 router.use(auth.authenticate)
 
-router.get("/", transactionController.transactionGet);
-router.post("/", transactionController.transactionPost);
-router.patch("/:id", transactionController.transactionPatch);
-router.delete("/:id", transactionController.transactionDelete);
-
-router.route("/:id")
-    .get()
+router.post("/", transactionController.addTransaction);
+router.get("/", transactionController.getAllTransaction);
+router.get("/:id",transactionController.getTransactionById);
+router.patch("/:id", transactionController.updateTransactionById);
+router.delete("/:id", transactionController.deleteTransactionById);
 
 module.exports = router;

@@ -12,7 +12,7 @@ const transactionSchema = new mongoose.Schema({
     price: {
         type: String,
     },
-    book: {
+    source: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "book",
     }
