@@ -8,12 +8,10 @@ const categoryController = require("./category");
 
 router.use(auth.authenticate)
 
-router.get("/", categoryController.categoryGet);
-router.post("/", categoryController.categoryPost);
-router.patch("/:id", categoryController.categoryPatch);
-router.delete("/:id", categoryController.categoryDelete);
-
-router.route("/:id")
-    .get()
+router.post("/", categoryController.addCategory);
+router.get("/", categoryController.getAllCategory);
+router.get("/:id",categoryController.getCategoryById);
+router.patch("/:id", categoryController.updateCategoryById);
+router.delete("/:id", categoryController.deleteCategoryById);
 
 module.exports = router;

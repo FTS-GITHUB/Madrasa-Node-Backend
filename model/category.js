@@ -5,10 +5,6 @@ const categorySchema = new mongoose.Schema({
         type: String,
         required: [true, "Category Title is Required"]
     },
-    detail: {
-        type: String,
-        required: [true, " Category detail is Required"]
-    },
 },
     {
         timestamps: true,

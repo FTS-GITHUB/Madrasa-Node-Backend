@@ -8,12 +8,11 @@ const bookController = require("./book");
 
 router.use(auth.authenticate)
 
-router.get("/", bookController.bookGet);
-router.post("/", bookController.bookPost);
-router.patch("/:id", bookController.bookPatch);
-router.delete("/:id", bookController.bookDelete);
 
-router.route("/:id")
-    .get()
+router.post("/", bookController.addBook);
+router.get("/", bookController.getAllBook);
+router.get("/:id",bookController.getBookById);
+router.patch("/:id", bookController.updateBookById);
+router.delete("/:id", bookController.deleteBookById);
 
 module.exports = router;

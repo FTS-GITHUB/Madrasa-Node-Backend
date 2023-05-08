@@ -4,7 +4,7 @@ const catchAsync = require("../../utils/catchAsync");
 
 
 // This is the Transaction Post API
-exports.addTransaction = catchAsync(async (req, res) => {
+const addTransaction = catchAsync(async (req, res) => {
     const currentUser = req.user;
     const receiverUser = req.user;
     const source = req.book;
@@ -26,7 +26,7 @@ exports.addTransaction = catchAsync(async (req, res) => {
 })
 
 // This is the Transaction Get API
-exports.getAllTransaction = catchAsync(async (req, res) => {
+const getAllTransaction = catchAsync(async (req, res) => {
     try {
         let currentUser = req.user;
         const result = await transaction.find({ [currentUser.role]: currentUser._id });
@@ -37,7 +37,7 @@ exports.getAllTransaction = catchAsync(async (req, res) => {
 })
 
 // This is the Transaction Get One API
-exports.getTransactionById = catchAsync(async (req, res) => {
+const getTransactionById = catchAsync(async (req, res) => {
     let transactionId = req.params.id
     try {
         const result = await transaction.findById(transactionId );
@@ -48,7 +48,7 @@ exports.getTransactionById = catchAsync(async (req, res) => {
 })
 
 // This is the Transaction Patch API
-exports.updateTransactionById = catchAsync(async (req, res) => {
+const updateTransactionById = catchAsync(async (req, res) => {
     const updateData = req.body
     const transactionId = req.params.id;
     try {
@@ -60,7 +60,7 @@ exports.updateTransactionById = catchAsync(async (req, res) => {
 })
 
 // This is the Transaction Delete API
-exports.deleteTransactionById = catchAsync(async (req, res) => {
+const deleteTransactionById = catchAsync(async (req, res) => {
     const transactionId = req.params.id
     try {
         const result = await transaction.findByIdAndDelete(transactionId );
@@ -69,3 +69,6 @@ exports.deleteTransactionById = catchAsync(async (req, res) => {
         res.status(STATUS_CODE.BAD_REQUEST).json({ statusCode: STATUS_CODE.SERVER_ERROR, err })
     }
 })
+
+
+module.exports = {addTransaction, getAllTransaction, getTransactionById, updateTransactionById , deleteTransactionById};
