@@ -27,6 +27,9 @@ const userSchema = new mongoose.Schema({
     address: {
         type: String,
     },
+    bio: {
+        type: String,
+    },
     password: {
         type: String,
         minlength: [8, "Password minimum length must be 8 characters"],
@@ -64,36 +67,10 @@ const userSchema = new mongoose.Schema({
     token: {
         type: String,
     },
-    role: {
-        type: String,
-        enum: {
-            values: [
-                "superadmin",
-                "admin",
-                "client",
-                "contractor",
-                "engineer"
-            ],
-            message:
-                "Role Must be superadmin, admin or client , contractor , engineer",
-        },
-        required: [true, "Role is required"],
-    },
-    archived: {
-        type: Boolean,
-        default: false,
-    }
+    
 }, {
     timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
 })
-
-// userSchema.virtual("certificate", {
-//     ref: "certificate",
-//     localField: "_id",
-//     foreignField: "certificator",
-// });
 
 userSchema.methods.createEmailVerifyToken = async function () {
     let token;
