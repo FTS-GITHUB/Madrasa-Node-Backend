@@ -30,7 +30,7 @@ exports.getAllTransaction = catchAsync(async (req, res) => {
     try {
         let currentUser = req.user;
         const result = await transaction.find({ [currentUser.role]: currentUser._id });
-        res.status(STATUS_CODE.OK).json({ result, message: "Data Fatched SuccessFully" })
+        res.status(STATUS_CODE.OK).json({ result:result, message: "Data Fatched SuccessFully" })
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ statusCode: STATUS_CODE.SERVER_ERROR, err })
     }
@@ -40,8 +40,8 @@ exports.getAllTransaction = catchAsync(async (req, res) => {
 exports.getTransactionById = catchAsync(async (req, res) => {
     let transactionId = req.params.id
     try {
-        const result = await transaction.findOne({_id: transactionId });
-        res.status(STATUS_CODE.OK).json({ result, message: "Data Fatched SuccessFully" })
+        const result = await transaction.findById(transactionId );
+        res.status(STATUS_CODE.OK).json({ result:result, message: "Data Fatched SuccessFully" })
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ statusCode: STATUS_CODE.SERVER_ERROR, err })
     }
@@ -52,8 +52,8 @@ exports.updateTransactionById = catchAsync(async (req, res) => {
     const updateData = req.body
     const transactionId = req.params.id;
     try {
-        const result = await transaction.findByIdAndUpdate({ _id: transactionId }, { $set: updateData });
-        res.status(STATUS_CODE.OK).json({ result, message: "Data Updated SuccessFully" })
+        const result = await transaction.findByIdAndUpdate(transactionId , { $set: updateData });
+        res.status(STATUS_CODE.OK).json({ result:result, message: "Data Updated SuccessFully" })
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ statusCode: STATUS_CODE.SERVER_ERROR, err })
     }
@@ -63,8 +63,8 @@ exports.updateTransactionById = catchAsync(async (req, res) => {
 exports.deleteTransactionById = catchAsync(async (req, res) => {
     const transactionId = req.params.id
     try {
-        const result = await transaction.findByIdAndDelete({ _id: transactionId });
-        res.status(STATUS_CODE.OK).json({ result, message: "Transaction Data is deleted SuccessFully" })
+        const result = await transaction.findByIdAndDelete(transactionId );
+        res.status(STATUS_CODE.OK).json({ result:result, message: "Transaction Data is deleted SuccessFully" })
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ statusCode: STATUS_CODE.SERVER_ERROR, err })
     }
