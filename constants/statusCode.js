@@ -7,6 +7,7 @@ const STATUS_CODE = {
     SERVER_ERROR: 500,
     NOT_FOUND: 404,
     ACCESS_DENIED: 403,
+    DUPLICATE: 406
 };
 
 module.exports = STATUS_CODE;
