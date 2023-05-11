@@ -8,5 +8,6 @@ module.exports = {
   TRANSACTION:`/transaction`,
   BOOK:`/book`,
   CATEGORY:`/category`,
+  BLOG:`/blog`,
 
 };

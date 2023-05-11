@@ -35,10 +35,10 @@ const bookSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "user"
     },
-    // category: {
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     ref: "category"
-    // },
+    category: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "category"
+    },
 
 },
     {
