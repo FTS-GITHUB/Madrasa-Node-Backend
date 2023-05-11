@@ -3,9 +3,15 @@ const router = express();
 const authController = require("./auth");
 
 router.post("/login", authController.login);
-router.post("/signup", authController.signup);
-router.post("/verify", authController.verify);
-router.post("/send-email-code", authController.sendEmailVerificationCode);
-router.post("/verify-email-code", authController.verifyEmailVerificationCode);
+
+router.post("/register/validate", authController.validate);
+router.post("/register/genrateEmailCode", authController.genrateEmailVerificationCode);
+router.post("/register/verifyEmail", authController.verifyEmailCode);
+router.post("/register/savePassword", authController.addPassword)
+
+
+// router.post("/signup", authController.signup);
+// router.post("/verify", authController.verify);
+// router.post("/verify-email-code", authController.verifyEmailVerificationCode);
 
 module.exports = router;
