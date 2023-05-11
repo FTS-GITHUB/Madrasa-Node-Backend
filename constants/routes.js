@@ -1,6 +1,6 @@
 module.exports = {
   AUTH: `/auth`,
-  USER: `/users`,
+  USER: `/user`,
   ADMIN: `/admin`,
   MODEL: `/model`,
   PROJECT: `/project`,

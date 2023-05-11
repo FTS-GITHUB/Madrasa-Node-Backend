@@ -72,11 +72,11 @@ exports.getProfile = catchAsync(async (req, res) => {
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result: currentUser });
     } catch (err) {
         console.log(err);
-        res.status(STATUS_CODE.SERVER_ERROR).json({ statusCode: STATUS_CODE.SERVER_ERROR }); s
+        res.status(STATUS_CODE.SERVER_ERROR).json({ statusCode: STATUS_CODE.SERVER_ERROR });
     }
 })
 
-exports.getById = catchAsync(async (req, res) => {
+exports.getUserById = catchAsync(async (req, res) => {
     try {
         let _id = req.params.id;
         if (!_id) {
@@ -133,70 +133,11 @@ exports.updateAccount = catchAsync(async (req, res) => {
     }
 })
 
-exports.getAll = catchAsync(async (req, res) => {
+exports.getAllUser = catchAsync(async (req, res) => {
+    const currentUser = req.user;
     try {
-        let role = req.query.role?.split(",");
-        if (Array.isArray(role)) {
-            role = role.map(el => el.trim());
-        }
-        let search = req.query.search;
-        let condition = {
-            archived: false,
-            _id: { $ne: req.user._id }
-        };
-        if (role) {
-            condition.$and = [{ role }];
-        }
-
-        if (search) {
-            condition.$and = [
-                ...(condition.$and ? condition.$and : []),
-                {
-
-                    $or: [
-                        { "firstName": { "$regex": search, "$options": "i" } },
-                        { "lastName": { "$regex": search, "$options": "i" } },
-                        { "email": { "$regex": search, "$options": "i" } }
-                    ],
-                }
-            ];
-        }
-
-        let perPage = req.query.perPage || 20;
-        let page = req.query.page || 0;
-        let doc = await userModel.find({ ...condition }).skip(page * perPage).limit(perPage);
-        let count = await userModel.countDocuments(condition);
-        res.status(STATUS_CODE.OK).json({ data: doc, total: count, page, perPage, statusCode: STATUS_CODE.OK });
-    } catch (err) {
-        console.log(err);
-        res.status(STATUS_CODE.SERVER_ERROR).json({ statusCode: STATUS_CODE.SERVER_ERROR });
-    }
-})
-
-exports.getAllClients = catchAsync(async (req, res) => {
-    try {
-        const result = await userModel.find({ role: roles.CLIENT }).select("firstName lastName email _id")
-        res.status(STATUS_CODE.OK).json({ result, statusCode: STATUS_CODE.OK });
-    } catch (err) {
-        console.log(err);
-        res.status(STATUS_CODE.SERVER_ERROR).json({ statusCode: STATUS_CODE.SERVER_ERROR });
-    }
-})
-
-exports.getAllContractors = catchAsync(async (req, res) => {
-    try {
-        const result = await userModel.find({ role: roles.CONTRACTOR }).select("firstName lastName email _id")
-        res.status(STATUS_CODE.OK).json({ result, statusCode: STATUS_CODE.OK });
-    } catch (err) {
-        console.log(err);
-        res.status(STATUS_CODE.SERVER_ERROR).json({ statusCode: STATUS_CODE.SERVER_ERROR });
-    }
-})
-
-exports.getAllEngineers = catchAsync(async (req, res) => {
-    try {
-        const result = await userModel.find({ role: roles.ENGINEER }).select("firstName lastName email _id")
-        res.status(STATUS_CODE.OK).json({ result, statusCode: STATUS_CODE.OK });
+        let result = await userModel.find({ _id: { $nin: [currentUser?._id] } })
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result });
     } catch (err) {
         console.log(err);
         res.status(STATUS_CODE.SERVER_ERROR).json({ statusCode: STATUS_CODE.SERVER_ERROR });
