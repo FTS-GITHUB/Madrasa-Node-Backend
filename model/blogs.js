@@ -3,11 +3,11 @@ const mongoose = require('mongoose');
 const blogSchema = new mongoose.Schema({
     title: {
         type: String,
-        required: [true, "blog Title is Required"]
+        required: [true, "Blog Title is Required"]
     },
     detail: {
         type: String,
-        required: [true, " blog detail is Required"]
+        required: [true, " Blog Detail is Required"]
     },
     image: {
         type: Object,
@@ -15,6 +15,15 @@ const blogSchema = new mongoose.Schema({
     auther: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "user"
+    },
+    isImgDel: {
+        type : Boolean,
+        default : false
+    },
+    slug : {
+        type : String,
+        unique : true,
+        require : [true, " Slug is Required"]
     },
     status: {
         type: String,
@@ -30,7 +39,7 @@ const blogSchema = new mongoose.Schema({
         timestamps: true,
     })
 
-
+// BuildIn Methods :
 blogSchema.pre("find", function (next) {
     this.populate("auther")
     next();
@@ -41,4 +50,3 @@ const blogModel = mongoose.model('blogs', blogSchema)
 module.exports = blogModel;
 
 
-// BuildIn Methods :
