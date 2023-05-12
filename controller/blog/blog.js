@@ -114,7 +114,7 @@ const deleteBlogById = catchAsync(async (req, res) => {
             result = await blog.findOneAndDelete({ _id: BlogId, auther: currentUser._id });
 
         }
-        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MESSAGES.DELETE, result })
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MESSAGES.DELETE})
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ statusCode: STATUS_CODE.SERVER_ERROR, err })
     }

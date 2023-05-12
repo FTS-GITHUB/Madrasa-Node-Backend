@@ -1,12 +1,12 @@
 const STATUS_CODE = require("../../constants/statusCode");
-const category = require("../../model/category");
+const tag = require("../../model/tag");
 const catchAsync = require("../../utils/catchAsync");
 const { SUCCESS_MESSAGES } = require('../../constants/success')
 const ROLES = require('../../constants/roles')
 
 
-// This is the Category Post API
-const addCategory = catchAsync(async (req, res) => {
+// This is the tag Post API
+const addTag = catchAsync(async (req, res) => {
     const currentUser = req.user;
     const data = req.body
 
@@ -16,7 +16,7 @@ const addCategory = catchAsync(async (req, res) => {
         if (!data.name || data.name == "") {
             res.status(STATUS_CODE.BAD_REQUEST).json({ statusCode: STATUS_CODE.BAD_REQUEST, message: "Name Required" })
         }
-        const newData = new category(data)
+        const newData = new tag(data)
         await newData.save()
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MESSAGES.CREATED, result: newData })
     } catch (err) {
@@ -24,28 +24,28 @@ const addCategory = catchAsync(async (req, res) => {
     }
 })
 
-// This is the Category Get API
-const getAllCategory = catchAsync(async (req, res) => {
+// This is the tag Get API
+const getAllTag = catchAsync(async (req, res) => {
     try {
         let currentUser = req.user;
         let result;
         if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentUser.role)) {
-            result = await category.find({});
+            result = await tag.find({});
         } else {
-            result = await category.find({ auther: currentUser._id });
+            result = await tag.find({ auther: currentUser._id });
         }
-        // const result = await category.find({ [currentUser.role]: currentUser._id });
+        // const result = await tag.find({ [currentUser.role]: currentUser._id });
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MESSAGES.SUCCESS, result })
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ statusCode: STATUS_CODE.SERVER_ERROR, err })
     }
 })
 
-// This is the Category Get One Data API
-const getCategoryById = catchAsync(async (req, res) => {
-    let categoryId = req.params.id
+// This is the tag Get One Data API
+const getTagById = catchAsync(async (req, res) => {
+    let tagId = req.params.id
     try {
-        const result = await category.findById(categoryId);
+        const result = await tag.findById(tagId);
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MESSAGES.SUCCESS, result })
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ statusCode: STATUS_CODE.SERVER_ERROR, err })
@@ -53,15 +53,15 @@ const getCategoryById = catchAsync(async (req, res) => {
 })
 
 
-// This is the Category Delete API
-const deleteCategoryById = catchAsync(async (req, res) => {
-    const categoryId = req.params.id
+// This is the tag Delete API
+const deleteTagById = catchAsync(async (req, res) => {
+    const tagId = req.params.id
     try {
-        const result = await category.findByIdAndDelete(categoryId);
+        const result = await tag.findByIdAndDelete(tagId);
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MESSAGES.DELETE })
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ statusCode: STATUS_CODE.SERVER_ERROR, err })
     }
 })
 
-module.exports = { addCategory, getAllCategory, getCategoryById, deleteCategoryById };
+module.exports = { addTag, getAllTag, getTagById, deleteTagById };
