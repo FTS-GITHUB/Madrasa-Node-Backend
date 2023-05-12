@@ -12,6 +12,7 @@ exports.UNAUTHORIZED = {
 };
 exports.PROGRAMMING = {
   SOME_ERROR: `Something went wrong`,
+  OPERATION_FAILED: "Opration Failed."
 };
 exports.RUNTIME = {
   SENDING_TOKEN: `There was error sending Token. Please try again later`,
