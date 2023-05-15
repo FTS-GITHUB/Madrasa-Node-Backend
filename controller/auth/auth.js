@@ -137,9 +137,9 @@ const verifyEmailCode = catchAsync(async (req, res, next) => {
 const addPassword = catchAsync(async (req, res, next) => {
 
     let { email, firstName, lastName, role, gender, password, code } = req.body;
-
+    console.log("---------> ", email);
     try {
-        if (!email, !firstName, !lastName, !role, !gender, !password, !code) {
+        if (!email || !firstName || !lastName || !role || !gender || !password || !code) {
             res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELDS_MISSING, fields: ["email", "firstName", "lastName", "role", "gender", "password", "code"] })
             return
         }
@@ -172,6 +172,7 @@ const addPassword = catchAsync(async (req, res, next) => {
         UserData.lastName = lastName;
         UserData.role = role;
         UserData.gender = gender;
+        UserData.status = "created"
 
         const hashPassword = await bycrypt.hashPassword(password);
         if (!hashPassword) {

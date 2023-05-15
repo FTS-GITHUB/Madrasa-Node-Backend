@@ -1,110 +1,34 @@
-const roles = require("../../constants/roles");
-const { STATUS_CODE, SUCCESS_MSG } = require("../../constants/index");
+const express = require("express");
+
+// Models :
 const userModel = require("../../model/user");
+
+// MiddleWares :
 const bycrypt = require("../../utils/bycrypt");
-const saveFileToPublic = require("../../utils/saveFileToPublic");
 const catchAsync = require("../../utils/catchAsync");
 const { uploadFile } = require("../../utils/uploader")
 
-exports.approve = catchAsync(async (req, res, next) => {
-    try {
-        let _id = req.params.id;
-        let approved = req.params.status;
-        if (!_id) {
-            res.status(STATUS_CODE.BAD_REQUEST).json({ message: "Id is required.", statusCode: STATUS_CODE.BAD_REQUEST });
-            return;
-        }
-        if (!approved) {
-            res.status(STATUS_CODE.BAD_REQUEST).json({ message: "status is required.", statusCode: STATUS_CODE.BAD_REQUEST });
-            return;
-        }
-        await userModel.updateOne({ _id }, {
-            $set: {
-                approved,
-            }
-        })
-            .then(doc => {
-                if (doc.modifiedCount) {
-                    res.status(STATUS_CODE.OK).json({ message: `Approved status is set to ${approved} successfully.`, statusCode: STATUS_CODE.OK });
-                    return;
-                }
-                res.status(STATUS_CODE.BAD_REQUEST).json({ message: "Unable to approve.", statusCode: STATUS_CODE.BAD_REQUEST });
-            })
-    } catch (err) {
-        console.log(err);
-        res.status(STATUS_CODE.SERVER_ERROR).json({ statusCode: STATUS_CODE.SERVER_ERROR });
-    }
-})
+// Helerps :
+const roles = require("../../constants/roles");
+const { STATUS_CODE, SUCCESS_MSG, ERRORS } = require("../../constants/index");
 
-exports.ban = catchAsync(async (req, res) => {
-    try {
-        let _id = req.params.id;
-        let banned = req.params.status;
-        if (!_id) {
-            res.status(STATUS_CODE.BAD_REQUEST).json({ message: "Id is required.", statusCode: STATUS_CODE.BAD_REQUEST });
-            return;
-        }
-        if (!banned) {
-            res.status(STATUS_CODE.BAD_REQUEST).json({ message: "status is required.", statusCode: STATUS_CODE.BAD_REQUEST });
-            return;
-        }
-        await userModel.updateOne({ _id }, {
-            $set: {
-                banned,
-            }
-        })
-            .then(doc => {
-                if (doc.modifiedCount) {
-                    res.status(STATUS_CODE.OK).json({ message: `banned status is set to ${banned} successfully.`, statusCode: STATUS_CODE.OK });
-                    return;
-                }
-                res.status(STATUS_CODE.BAD_REQUEST).json({ message: "Unable to ban.", statusCode: STATUS_CODE.BAD_REQUEST });
-            })
-    } catch (err) {
-        console.log(err);
-        res.status(STATUS_CODE.SERVER_ERROR).json({ statusCode: STATUS_CODE.SERVER_ERROR });
-    }
-})
 
-exports.getProfile = catchAsync(async (req, res) => {
+
+
+
+const getProfile = catchAsync(async (req, res) => {
     try {
         let currentUser = req.user;
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result: currentUser });
     } catch (err) {
         console.log(err);
-        res.status(STATUS_CODE.SERVER_ERROR).json({ statusCode: STATUS_CODE.SERVER_ERROR }); s
-    }
-})
-
-exports.getById = catchAsync(async (req, res) => {
-    try {
-        let _id = req.params.id;
-        if (!_id) {
-            res.status(STATUS_CODE.BAD_REQUEST).json({ message: "Id is required.", statusCode: STATUS_CODE.BAD_REQUEST });
-            return;
-        }
-        await userModel.findOne({ _id })
-            .then(doc => {
-                if (doc) {
-                    res.status(STATUS_CODE.OK).json({ data: doc, statusCode: STATUS_CODE.OK });
-                    return;
-                }
-                res.status(STATUS_CODE.NOT_FOUND).json({ message: "Not found", statusCode: STATUS_CODE.NOT_FOUND });
-            })
-    } catch (err) {
-        console.log(err);
         res.status(STATUS_CODE.SERVER_ERROR).json({ statusCode: STATUS_CODE.SERVER_ERROR });
     }
 })
 
-exports.updateAccount = catchAsync(async (req, res) => {
-
-    console.log("------->", req.body);
-
+const updateAccount = catchAsync(async (req, res) => {
     try {
-
         let currentUser = req.user;
-        console.log("*******>", currentUser);
 
         if (req.file) {
             req.body.profileImage = await uploadFile(req.file, currentUser?.profileImage?.url || null);
@@ -122,83 +46,105 @@ exports.updateAccount = catchAsync(async (req, res) => {
         let result = await userModel.findOneAndUpdate({ _id: req.user._id }, req.body, { returnOriginal: false });
 
         if (result.isModified) {
-            res.status(STATUS_CODE.OK).json({ message: `Profile updated successfully`, result: result });
+            res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.UPDATE, result: result });
             return;
         }
 
-        res.status(STATUS_CODE.BAD_REQUEST).json({ message: `Profile updatetion failed`, statusCode: STATUS_CODE.BAD_REQUEST });
+        res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.OPERATION_FAILED });
     } catch (err) {
         console.log(err)
-        res.status(STATUS_CODE.SERVER_ERROR).json({ message: `Server error occur`, statusCode: STATUS_CODE.SERVER_ERROR });
+        res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err });
     }
 })
 
-exports.getAll = catchAsync(async (req, res) => {
+
+
+const getAllUser = catchAsync(async (req, res) => {
+    const currentUser = req.user;
     try {
-        let role = req.query.role?.split(",");
-        if (Array.isArray(role)) {
-            role = role.map(el => el.trim());
-        }
-        let search = req.query.search;
-        let condition = {
-            archived: false,
-            _id: { $ne: req.user._id }
-        };
-        if (role) {
-            condition.$and = [{ role }];
-        }
+        let result = await userModel.find({ _id: { $nin: [currentUser?._id] } })
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result });
+    } catch (err) {
+        console.log(err);
+        res.status(STATUS_CODE.SERVER_ERROR).json({ statusCode: STATUS_CODE.SERVER_ERROR });
+    }
+})
 
-        if (search) {
-            condition.$and = [
-                ...(condition.$and ? condition.$and : []),
-                {
-
-                    $or: [
-                        { "firstName": { "$regex": search, "$options": "i" } },
-                        { "lastName": { "$regex": search, "$options": "i" } },
-                        { "email": { "$regex": search, "$options": "i" } }
-                    ],
-                }
-            ];
+const addNewUserByAdmn = catchAsync(async (req, res, next) => {
+    try {
+        let { firstName, lastName, email, role, gender, password } = req.body;
+        if (!email || !firstName || !lastName || !role || !gender || !password) {
+            res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELDS_MISSING, fields: ["email", "firstName", "lastName", "role", "gender", "password"] })
+            return
+        }
+        if (password.length <= 7) {
+            res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.INVALID.PASSWORD_LENGTH })
+            return
         }
 
-        let perPage = req.query.perPage || 20;
-        let page = req.query.page || 0;
-        let doc = await userModel.find({ ...condition }).skip(page * perPage).limit(perPage);
-        let count = await userModel.countDocuments(condition);
-        res.status(STATUS_CODE.OK).json({ data: doc, total: count, page, perPage, statusCode: STATUS_CODE.OK });
+        if (req.file) {
+            req.body.profileImage = await uploadFile(req.file, null);
+        }
+
+        const hashPassword = await bycrypt.hashPassword(password);
+        if (!hashPassword) {
+            res.status(STATUS_CODE.SERVER_ERROR).json({ message: "Hashing Error" });
+            return;
+        }
+        req.body.password = hashPassword;
+
+        req.body.status = "approved";
+
+        const UserData = new userModel(req.body);
+        await UserData.save();
+
+        UserData.password = null;
+        res.status(STATUS_CODE.CREATED).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.ACCOUNT_CREATED_SUCCESS, result: UserData })
+
     } catch (err) {
-        console.log(err);
-        res.status(STATUS_CODE.SERVER_ERROR).json({ statusCode: STATUS_CODE.SERVER_ERROR });
+        res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err });
     }
 })
 
-exports.getAllClients = catchAsync(async (req, res) => {
+const getUserById = catchAsync(async (req, res) => {
     try {
-        const result = await userModel.find({ role: roles.CLIENT }).select("firstName lastName email _id")
-        res.status(STATUS_CODE.OK).json({ result, statusCode: STATUS_CODE.OK });
+        let _id = req.params.id;
+        if (!_id) {
+            res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELDS_MISSING, fields: ["ID"] });
+            return;
+        }
+        let result = await userModel.findOne({ _id })
+        if (!result) {
+            res.status(STATUS_CODE.NOT_FOUND).json({ message: ERRORS.INVALID.NOT_FOUND });
+        }
+
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result });
     } catch (err) {
         console.log(err);
-        res.status(STATUS_CODE.SERVER_ERROR).json({ statusCode: STATUS_CODE.SERVER_ERROR });
+        res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err });
     }
 })
 
-exports.getAllContractors = catchAsync(async (req, res) => {
+const reviewUser = catchAsync(async (req, res, next) => {
     try {
-        const result = await userModel.find({ role: roles.CONTRACTOR }).select("firstName lastName email _id")
-        res.status(STATUS_CODE.OK).json({ result, statusCode: STATUS_CODE.OK });
-    } catch (err) {
-        console.log(err);
-        res.status(STATUS_CODE.SERVER_ERROR).json({ statusCode: STATUS_CODE.SERVER_ERROR });
-    }
-})
+        let { userId, status } = req.body;
+        if (!userId || !status) {
+            res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELDS_MISSING, fields: ["userId , status"] });
+            return;
+        }
 
-exports.getAllEngineers = catchAsync(async (req, res) => {
-    try {
-        const result = await userModel.find({ role: roles.ENGINEER }).select("firstName lastName email _id")
-        res.status(STATUS_CODE.OK).json({ result, statusCode: STATUS_CODE.OK });
+        let userData = await userModel.findByIdAndUpdate(userId, { status }, { new: true })
+
+        if (!userData) {
+            res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.USER_NOT_FOUND });
+            return;
+        }
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result: userData });
     } catch (err) {
         console.log(err);
-        res.status(STATUS_CODE.SERVER_ERROR).json({ statusCode: STATUS_CODE.SERVER_ERROR });
+        res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err });
     }
-})
+});
+
+
+module.exports = { getProfile, updateAccount, getAllUser, addNewUserByAdmn, getUserById, reviewUser }
