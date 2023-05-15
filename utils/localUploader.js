@@ -19,7 +19,7 @@ const uploadFile = (file, prevName) => {
   };
 
   fs.writeFileSync(pathWithFileName, file.buffer);
-  let res = { url: fileName }
+  let res = { url: fileName, storage: "local" }
   return res;
 }
 

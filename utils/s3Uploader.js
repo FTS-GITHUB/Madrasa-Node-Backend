@@ -23,7 +23,11 @@ exports.uploadFile = async (file) => {
     ContentType: file.mimetype,
   };
   const obj = await s3.upload(uploadParams).promise();
-  return obj;
+  return {
+    ...obj,
+    url: obj?.Location,
+    storage: "aws_s3"
+  };
 };
 
 exports.uploadArrayOfFiles = async (files) => {
