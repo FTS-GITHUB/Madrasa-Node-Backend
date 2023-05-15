@@ -13,7 +13,10 @@ const bookSchema = new mongoose.Schema({
         type: String,
     },
     image: {
-        type: String,
+        type: Object,
+    },
+    file : {
+        type:Object,
     },
     price: {
         type: String,

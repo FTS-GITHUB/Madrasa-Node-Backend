@@ -1,6 +1,7 @@
-const STATUS_CODE = require("../../constants/statusCode");
 const category = require("../../model/category");
 const catchAsync = require("../../utils/catchAsync");
+const { SUCCESS_MSG , ERRORS , STATUS_CODE, ROLES } = require("../../constants/index")
+
 
 
 // This is the Category Post API
@@ -11,23 +12,30 @@ const addCategory = catchAsync(async (req, res) => {
     data.user = currentUser?._id
 
     try {
+        if (!data.name || data.name == "") {
+            res.status(STATUS_CODE.ALREADY).json({ message: ERRORS.REQUIRED.FIELD })
+        }
         const newData = new category(data)
         await newData.save()
-        res.status(STATUS_CODE.OK).json({ message: `Category Detail Inserted SuccessFully`, result: newData})
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.CREATED, result: newData })
     } catch (err) {
-        res.status(STATUS_CODE.SERVER_ERROR).json({ statusCode: STATUS_CODE.SERVER_ERROR, err })
+        res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
-
 })
 
 // This is the Category Get API
 const getAllCategory = catchAsync(async (req, res) => {
     try {
         let currentUser = req.user;
-        const result = await category.find({ [currentUser.role]: currentUser._id });
-        res.status(STATUS_CODE.OK).json({ result:result, message: "Data Fatched SuccessFully" })
+        let result;
+        if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentUser.role)) {
+            result = await category.find({});
+        } else {
+            result = await category.find({ auther: currentUser._id });
+        }
+        res.status(STATUS_CODE.OK).json({ message:SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result })
     } catch (err) {
-        res.status(STATUS_CODE.BAD_REQUEST).json({ statusCode: STATUS_CODE.SERVER_ERROR, err })
+        res.status(STATUS_CODE.BAD_REQUEST).json({ message : ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 
@@ -35,35 +43,23 @@ const getAllCategory = catchAsync(async (req, res) => {
 const getCategoryById = catchAsync(async (req, res) => {
     let categoryId = req.params.id
     try {
-        const result = await category.findById(categoryId );
-        res.status(STATUS_CODE.OK).json({ result:result, message: "Data Fatched SuccessFully" })
+        const result = await category.findById(categoryId);
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result })
     } catch (err) {
-        res.status(STATUS_CODE.BAD_REQUEST).json({ statusCode: STATUS_CODE.SERVER_ERROR, err })
+        res.status(STATUS_CODE.BAD_REQUEST).json({ message : ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 
-// This is the Category Patch API
-const updateCategoryById = catchAsync(async (req, res) => {
-    const updateData = req.body
-    const categoryId = req.params.id;
-    try {
-        const result = await category.findByIdAndUpdate(categoryId , { $set: updateData });
-        res.status(STATUS_CODE.OK).json({ result:result, message: "Data Updated SuccessFully" })
-    } catch (err) {
-        res.status(STATUS_CODE.BAD_REQUEST).json({ statusCode: STATUS_CODE.SERVER_ERROR, err })
-    }
-})
 
 // This is the Category Delete API
 const deleteCategoryById = catchAsync(async (req, res) => {
     const categoryId = req.params.id
     try {
-        let currentUser = req.user;
         const result = await category.findByIdAndDelete(categoryId);
-        res.status(STATUS_CODE.OK).json({ result:result, message: "Data Delete SuccessFully" })
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.DELETE })
     } catch (err) {
-        res.status(STATUS_CODE.BAD_REQUEST).json({ statusCode: STATUS_CODE.SERVER_ERROR, err })
+        res.status(STATUS_CODE.BAD_REQUEST).json({ message : ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 
-module.exports = {addCategory, getAllCategory, getCategoryById, updateCategoryById , deleteCategoryById};
+module.exports = { addCategory, getAllCategory, getCategoryById, deleteCategoryById };
