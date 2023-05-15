@@ -13,9 +13,9 @@ const addBook = catchAsync(async (req, res) => {
     try {
         const newData = new book(data)
         await newData.save()
-        res.status(STATUS_CODE.OK).json({ message: `book Detail Inserted SuccessFully`, result: newData})
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.CREATED,result: newData})
     } catch (err) {
-        res.status(STATUS_CODE.SERVER_ERROR).json({ statusCode: STATUS_CODE.SERVER_ERROR, err })
+        res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 
 })
@@ -25,9 +25,9 @@ const getAllBook = catchAsync(async (req, res) => {
     try {
         let currentUser = req.user;
         const result = await book.find({ [currentUser.role]: currentUser._id });
-        res.status(STATUS_CODE.OK).json({ result:result, message: "Data Fatched SuccessFully" })
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result})
     } catch (err) {
-        res.status(STATUS_CODE.BAD_REQUEST).json({ statusCode: STATUS_CODE.SERVER_ERROR, err })
+        res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 
@@ -36,9 +36,9 @@ const getBookById = catchAsync(async (req, res) => {
     let bookId = req.params.id
     try {
         const result = await book.findById(bookId );
-        res.status(STATUS_CODE.OK).json({ result:result, message: "Data Fatched SuccessFully" })
+        res.status(STATUS_CODE.OK).json({message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS ,result})
     } catch (err) {
-        res.status(STATUS_CODE.BAD_REQUEST).json({ statusCode: STATUS_CODE.SERVER_ERROR, err })
+        res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 
@@ -48,9 +48,9 @@ const updateBookById = catchAsync(async (req, res) => {
     const bookId = req.params.id;
     try {
         const result = await book.findOneAndUpdate(bookId , { $set: updateData });
-        res.status(STATUS_CODE.OK).json({ result:result, message: "Data Updated SuccessFully" })
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS ,result})
     } catch (err) {
-        res.status(STATUS_CODE.BAD_REQUEST).json({ statusCode: STATUS_CODE.SERVER_ERROR, err })
+        res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 
@@ -59,9 +59,9 @@ const deleteBookById = catchAsync(async (req, res) => {
     const bookId = req.params.id
     try {
         const result = await book.findOneAndDelete(bookId );
-        res.status(STATUS_CODE.OK).json({ result:result, message: "Data Delete SuccessFully" })
+        res.status(STATUS_CODE.OK).json({message: SUCCESS_MSG.SUCCESS_MESSAGES.UPDATE,result })
     } catch (err) {
-        res.status(STATUS_CODE.BAD_REQUEST).json({ statusCode: STATUS_CODE.SERVER_ERROR, err })
+        res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 

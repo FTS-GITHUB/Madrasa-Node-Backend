@@ -1,6 +1,6 @@
-const STATUS_CODE = require("../../constants/statusCode");
 const booking = require("../../model/booking");
 const catchAsync = require("../../utils/catchAsync");
+const { SUCCESS_MSG, ERRORS, STATUS_CODE, ROLES } = require("../../constants/index")
 
 
 // This is the Booking Post API
@@ -12,9 +12,9 @@ const addBooking = catchAsync(async (req, res) => {
     try {
         const newData = new booking(data)
         await newData.save()
-        res.status(STATUS_CODE.OK).json({ message: `booking Detail Inserted SuccessFully`, result: newData})
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.CREATED, result: newData})
     } catch (err) {
-        res.status(STATUS_CODE.SERVER_ERROR).json({ statusCode: STATUS_CODE.SERVER_ERROR, err })
+        res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 
@@ -23,9 +23,9 @@ const getAllBooking = catchAsync(async (req, res) => {
     try {
         let currentUser = req.user;
         const result = await booking.find({ [currentUser.role]: currentUser._id })
-        res.status(STATUS_CODE.OK).json({ result:result, message: "Data Fatched SuccessFully" })
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS ,result})
     } catch (err) {
-        res.status(STATUS_CODE.BAD_REQUEST).json({ statusCode: STATUS_CODE.SERVER_ERROR, err })
+        res.status(STATUS_CODE.BAD_REQUEST).json({message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 
@@ -34,9 +34,9 @@ const getBookingById = catchAsync(async (req, res) => {
     let bookingId = req.params.id
     try {
         const result = await booking.findById(bookingId );
-        res.status(STATUS_CODE.OK).json({ result:result, message: "Data Fatched SuccessFully" })
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result})
     } catch (err) {
-        res.status(STATUS_CODE.BAD_REQUEST).json({ statusCode: STATUS_CODE.SERVER_ERROR, err })
+        res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 
@@ -47,9 +47,9 @@ const updateBookingById = catchAsync(async (req, res) => {
     const bookingId = req.params.id;
     try {
         const result = await booking.findByIdAndUpdate(bookingId , { $set: updateData });
-        res.status(STATUS_CODE.OK).json({ result:result, message: "Data Updated SuccessFully" })
+        res.status(STATUS_CODE.OK).json({message: SUCCESS_MSG.SUCCESS_MESSAGES.UPDATE,result})
     } catch (err) {
-        res.status(STATUS_CODE.BAD_REQUEST).json({ statusCode: STATUS_CODE.SERVER_ERROR, err })
+        res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 
@@ -58,9 +58,9 @@ const deleteBookingById = catchAsync(async (req, res) => {
     const bookingId = req.params.id
     try {
         const result = await booking.findByIdAndDelete( bookingId );
-        res.status(STATUS_CODE.OK).json({ result:result, message: "Data Delete SuccessFully" })
+        res.status(STATUS_CODE.OK).json({message: SUCCESS_MSG.SUCCESS_MESSAGES.DELETE,result})
     } catch (err) {
-        res.status(STATUS_CODE.BAD_REQUEST).json({ statusCode: STATUS_CODE.SERVER_ERROR, err })
+        res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 
