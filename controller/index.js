@@ -6,6 +6,7 @@ const booking = require("./booking/index")
 const transaction = require("./transaction/index")
 const book = require("./book/index")
 const category = require("./category/index")
+const tag = require("./tag/index")
 const blog = require("./blog/index")
 
 
@@ -22,6 +23,7 @@ const controllers = {
     transaction,
     book,
     category,
+    tag,
     blog,
 }
 

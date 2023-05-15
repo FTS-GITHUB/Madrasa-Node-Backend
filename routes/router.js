@@ -11,6 +11,7 @@ router.use(routes.BOOKING, controllers.booking);
 router.use(routes.TRANSACTION, controllers.transaction);
 router.use(routes.BOOK, controllers.book);
 router.use(routes.CATEGORY, controllers.category);
+router.use(routes.TAG, controllers.tag);
 router.use(routes.BLOG, controllers.blog);
 
 module.exports = router;

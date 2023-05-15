@@ -28,7 +28,8 @@ exports.REQUIRED = {
   TITLE_REQUIRED: "Title is required. Please Enter Title",
   START_DATE: "Start Date is Required",
   END_DATE: "End Date is Required",
-  FIELDS_MISSING: "Requried Fields Missing"
+  FIELDS_MISSING: "Requried Fields Missing",
+  FIELD: "Invalid Field",
 };
 exports.UNIQUE = {
   ALREADY_EMAIL: "Email already exist",
