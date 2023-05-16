@@ -10,15 +10,15 @@ const bookSchema = new mongoose.Schema({
         required: [true, " book detail is Required"]
     },
     review: {
-        type: String,
+        type: Array,
     },
     image: {
         type: Object,
     },
-    file : {
-        type:Object,
-    },
-    price: {
+    // bookFile : {
+    //     type:Object,
+    // },
+    bookStatus : {
         type: String,
         enum: {
             values: ["Paid", "Unpaid"],
@@ -26,11 +26,14 @@ const bookSchema = new mongoose.Schema({
         },
         default: "Unpaid"
     },
+    price: {
+        type: String,
+    },
     status: {
         type: String,
         enum: {
-            values: ["approve", "rejected", "pending"],
-            message: "Status must be approve, rejected or pending",
+            values: ["approved", "rejected", "pending"],
+            message: "Status must be approved, rejected or pending",
         },
         default: "pending",
     },
@@ -40,7 +43,11 @@ const bookSchema = new mongoose.Schema({
     },
     category: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "category"
+        ref: "CategoryModel"
+    },
+    isImgDel: {
+        type : Boolean,
+        default : false
     },
 
 },
@@ -48,5 +55,11 @@ const bookSchema = new mongoose.Schema({
         timestamps: true,
     })
 
-const bookModel = mongoose.model('books', bookSchema)
+    
+    bookSchema.pre("find", function (next) {
+        this.populate("auther category")
+        next();
+    })
+
+const bookModel = mongoose.model('bookModel', bookSchema)
 module.exports = bookModel;

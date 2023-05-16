@@ -14,12 +14,17 @@ const transactionSchema = new mongoose.Schema({
     },
     source: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "book",
+        ref: "bookModel",
     }
 },
     {
         timestamps: true,
     })
 
-const transactionModel = mongoose.model('transactions', transactionSchema)
+    transactionSchema.pre("find", function (next) {
+        this.populate("sender receiver source")
+        next();
+    })
+
+const transactionModel = mongoose.model('transactionModel', transactionSchema)
 module.exports = transactionModel;

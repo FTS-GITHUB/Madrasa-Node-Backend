@@ -45,7 +45,7 @@ const getAllBlog = catchAsync(async (req, res) => {
 // This is the get All Public Blog Which is Approve Data API
 const getPublicBlog = catchAsync(async (req, res) => {
     try {
-        const result = await blog.find({ status: "Approve" })
+        const result = await blog.find({ status: "approved" })
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result })
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
@@ -70,7 +70,7 @@ const reviewBlog = catchAsync(async (req, res) => {
         const FindOne = await blog.findOne({ _id: blogId, status: "pending" })
         console.log(FindOne)
         if (FindOne) {
-            if (FindOne.status == "Approved" || FindOne.status == "Rejected") {
+            if (FindOne.status == "approved" || FindOne.status == "rejected") {
                 return res.status(STATUS_CODE.BAD_REQUEST).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.ALREADY})
             }else{
                 const result = await blog.findOneAndUpdate({ _id: blogId }, { $set: { status: status } }, { new: true })
@@ -86,11 +86,12 @@ const reviewBlog = catchAsync(async (req, res) => {
 
 // This is the Blog Patch API
 const updateBlogById = catchAsync(async (req, res) => {
-    const data = req.body
+    const currentUser = req.user;
+    const data = req.body;
     const BlogId = req.params.id;
     try {
         if (data.status) {
-            res.status(STATUS_CODE.BAD_REQUEST).json({ message: UNAUTHORIZED.UNAUTHORIZE })
+            res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.UNAUTHORIZED.UNAUTHORIZE })
         }
         if (data.isImgDel == "true") {
             data.image = {};
@@ -99,7 +100,7 @@ const updateBlogById = catchAsync(async (req, res) => {
                 data.image = await uploadFile(req.file, data?.image?.url || null);
             }
         }
-
+        data.status = "pending";
         const result = await blog.findByIdAndUpdate(BlogId, data, { new: true });
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.UPDATE, result })
     } catch (err) {
