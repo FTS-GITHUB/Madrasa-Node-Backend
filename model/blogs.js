@@ -16,6 +16,9 @@ const blogSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "user"
     },
+    quote:{
+        type:String,
+    },
     isImgDel: {
         type : Boolean,
         default : false
