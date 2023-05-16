@@ -54,10 +54,14 @@ const getTagById = catchAsync(async (req, res) => {
 
 // This is the tag Delete API
 const deleteTagById = catchAsync(async (req, res) => {
+    const currentUser = req.user;
     const tagId = req.params.id
     try {
-        const result = await tag.findByIdAndDelete(tagId);
-        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.DELETE })
+        let result = await tag.findOneAndDelete({ _id: tagId, auther: currentUser._id });
+        if (result) {
+            return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.DELETE })
+        }
+        res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND })
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
