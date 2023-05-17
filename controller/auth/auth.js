@@ -37,7 +37,7 @@ const login = catchAsync(async (req, res) => {
                 if (token) {
                     doc.token = token;
                 }
-                res.status(STATUS_CODE.OK).json({ data: doc, statusCode: STATUS_CODE.OK });
+                res.status(STATUS_CODE.OK).json({ result: doc, statusCode: STATUS_CODE.OK });
                 return
             }
             res.status(STATUS_CODE.BAD_REQUEST).json({ message: "Invalid email and password", statusCode: STATUS_CODE.BAD_REQUEST });
