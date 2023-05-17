@@ -57,8 +57,12 @@ const updateBookingById = catchAsync(async (req, res) => {
 const deleteBookingById = catchAsync(async (req, res) => {
     const bookingId = req.params.id
     try {
-        const result = await booking.findByIdAndDelete( bookingId );
-        res.status(STATUS_CODE.OK).json({message: SUCCESS_MSG.SUCCESS_MESSAGES.DELETE,result})
+
+         let result = await booking.findOneAndDelete({ _id: bookingId, auther: currentUser._id });
+        if (result) {
+            return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.DELETE })
+        }
+        res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND })
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }

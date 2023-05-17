@@ -1,21 +1,17 @@
 const transaction = require("../../model/transaction");
 const catchAsync = require("../../utils/catchAsync");
-const { SUCCESS_MSG , ERRORS , STATUS_CODE, ROLES } = require("../../constants/index")
+const { SUCCESS_MSG, ERRORS, STATUS_CODE, ROLES } = require("../../constants/index")
 
 
 // This is the Transaction Post API
 const addTransaction = catchAsync(async (req, res) => {
     const currentUser = req.user;
-    const receiverUser = req.body.receiver;
-    const source = req.body.book;
     const data = req.body;
 
     data.sender = currentUser?._id;
-    data.receiver = receiverUser?._id;
-    data.source = source?._id;
 
     try {
-        if(!data.sender || data.sender=="" || !data.receiver|| data.receiver=="", !data.source || data.source=="", !data){
+        if (!data.sender || data.sender == "" || !data.receiver || data.receiver == "", !data.source || data.source == "", !data) {
             res.status(STATUS_CODE.ALREADY).json({ message: ERRORS.REQUIRED.FIELD })
         }
         const newData = new transaction(data)
@@ -37,9 +33,10 @@ const getAllTransaction = catchAsync(async (req, res) => {
         } else {
             result = await transaction.find({ auther: currentUser._id });
         }
-        res.status(STATUS_CODE.OK).json({ message:SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS , result})
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result })
     } catch (err) {
-        res.status(STATUS_CODE.BAD_REQUEST).json({ statusCode: STATUS_CODE.SERVER_ERROR, err })
+        console.log(err);
+        res.status(STATUS_CODE.BAD_REQUEST).json({ statusCode: STATUS_CODE.BAD_REQUEST, err })
     }
 })
 
@@ -47,8 +44,8 @@ const getAllTransaction = catchAsync(async (req, res) => {
 const getTransactionById = catchAsync(async (req, res) => {
     let transactionId = req.params.id
     try {
-        const result = await transaction.findById(transactionId );
-        res.status(STATUS_CODE.OK).json({  message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result})
+        const result = await transaction.findById(transactionId);
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result })
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
@@ -59,23 +56,33 @@ const updateTransactionById = catchAsync(async (req, res) => {
     const updateData = req.body
     const transactionId = req.params.id;
     try {
-        const result = await transaction.findByIdAndUpdate(transactionId , { $set: updateData });
-        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.UPDATE , result})
+        const result = await transaction.findByIdAndUpdate(transactionId, { $set: updateData }, { new: true });
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.UPDATE, result })
     } catch (err) {
-        res.status(STATUS_CODE.BAD_REQUEST).json({message:SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, err })
+        res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 
 // This is the Transaction Delete API
 const deleteTransactionById = catchAsync(async (req, res) => {
+    const currentUser = req.user
     const transactionId = req.params.id
     try {
-        const result = await transaction.findByIdAndDelete(transactionId );
-        res.status(STATUS_CODE.OK).json({message: SUCCESS_MSG.SUCCESS_MESSAGES.DELETE })
+        let result;
+        if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentUser.role)) {
+            result = await transaction.findByIdAndDelete(transactionId);
+        } else {
+            result = await transaction.findOneAndDelete({ _id: transactionId, auther: currentUser._id });
+        }
+        if (result) {
+            return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.DELETE })
+        }
+        res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND })
     } catch (err) {
-        res.status(STATUS_CODE.BAD_REQUEST).json({ message:SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, err })
+        console.log(err);
+        res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 
 
-module.exports = {addTransaction, getAllTransaction, getTransactionById, updateTransactionById , deleteTransactionById};
+module.exports = { addTransaction, getAllTransaction, getTransactionById, updateTransactionById, deleteTransactionById };

@@ -16,6 +16,9 @@ const blogSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "user"
     },
+    quote:{
+        type:String,
+    },
     isImgDel: {
         type : Boolean,
         default : false
@@ -23,12 +26,12 @@ const blogSchema = new mongoose.Schema({
     slug : {
         type : String,
         unique : true,
-        require : [true, " Slug is Required"]
+        required : [true, "Slug is Required"]
     },
     status: {
         type: String,
         enum: {
-            values: ["approve", "rejected", "pending"],
+            values: ["approved", "rejected", "pending"],
             message: "Status must Be approve, rejected or pending",
         },
         default: "pending",
