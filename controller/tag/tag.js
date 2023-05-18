@@ -57,7 +57,7 @@ const deleteTagById = catchAsync(async (req, res) => {
     const currentUser = req.user;
     const tagId = req.params.id
     try {
-        let result = await tag.findOneAndDelete({ _id: tagId, auther: currentUser._id });
+        let result = await tag.findOneAndDelete({ _id: tagId });
         if (result) {
             return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.DELETE })
         }

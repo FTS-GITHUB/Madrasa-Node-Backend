@@ -67,17 +67,20 @@ const getBlogById = catchAsync(async (req, res) => {
 const reviewBlog = catchAsync(async (req, res) => {
     const { blogId, status } = req.body;
     try {
+        if (!status || status == "") {
+            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELD })
+        }
         const FindOne = await blog.findOne({ _id: blogId, status: "pending" })
         console.log(FindOne)
         if (FindOne) {
             if (FindOne.status == "approved" || FindOne.status == "rejected") {
-                return res.status(STATUS_CODE.BAD_REQUEST).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.ALREADY})
-            }else{
+                return res.status(STATUS_CODE.BAD_REQUEST).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.ALREADY })
+            } else {
                 const result = await blog.findOneAndUpdate({ _id: blogId }, { $set: { status: status } }, { new: true })
                 return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.UPDATE, result })
             }
-        }else{
-            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.ALREADY})
+        } else {
+            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.ALREADY })
         }
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
@@ -90,8 +93,12 @@ const updateBlogById = catchAsync(async (req, res) => {
     const data = req.body;
     const BlogId = req.params.id;
     try {
+        const FindOne = await blog.findById(BlogId)
+        if (!FindOne) {
+            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND })
+        }
         if (data.status) {
-            res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.UNAUTHORIZED.UNAUTHORIZE })
+            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.UNAUTHORIZED.UNAUTHORIZE })
         }
         if (data.isImgDel == "true") {
             data.image = {};
@@ -102,7 +109,8 @@ const updateBlogById = catchAsync(async (req, res) => {
         }
         data.status = "pending";
         const result = await blog.findByIdAndUpdate(BlogId, data, { new: true });
-        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.UPDATE, result })
+        return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.UPDATE, result: result })
+        console.log(result)
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
@@ -113,14 +121,17 @@ const deleteBlogById = catchAsync(async (req, res) => {
     const BlogId = req.params.id
     const currentUser = req.user
     try {
+        const FindOne = await blog.findById(BlogId)
+        if (!FindOne) {
+            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND })
+        }
         let result;
         if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentUser.role)) {
             result = await blog.findByIdAndDelete(BlogId);
         } else {
             result = await blog.findOneAndDelete({ _id: BlogId, auther: currentUser._id });
-
         }
-        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.DELETE })
+        return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.DELETE })
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }

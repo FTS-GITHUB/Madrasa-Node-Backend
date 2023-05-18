@@ -12,9 +12,8 @@ const addBook = catchAsync(async (req, res) => {
     data.category = req.body.category
 
     try {
-        console.log(data)
-        if (!data) {
-            res.status(STATUS_CODE.ALREADY).json({ message: ERRORS.REQUIRED.FIELD })
+        if (!data.title || data.title == "" || !data.detail || data.detail == "" || !data.file || data.file == "" || !data.bookStatus || data.bookStatus == "") {
+            return res.status(STATUS_CODE.ALREADY).json({ message: ERRORS.REQUIRED.FIELD })
         }
         if (req.file) {
             data.image = await uploadFile(req.file, data?.image?.url || null);
@@ -70,10 +69,13 @@ const getPublicBook = catchAsync(async (req, res) => {
 const reviewBook = catchAsync(async (req, res) => {
     const { bookId, status } = req.body;
     try {
+        if (!status || status == "") {
+            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELD })
+        }
         const FindOne = await book.findOne({ _id: bookId, status: "pending" })
         if (FindOne) {
             if (FindOne.status == "approved" || FindOne.status == "rejected") {
-                res.status(STATUS_CODE.BAD_REQUEST).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.ALREADY })
+                return res.status(STATUS_CODE.BAD_REQUEST).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.ALREADY })
             } else {
                 const result = await book.findOneAndUpdate({ _id: bookId }, { $set: { status: status } }, { new: true })
                 return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.UPDATE, result })
@@ -92,9 +94,12 @@ const updateBookById = catchAsync(async (req, res) => {
     const data = req.body
     const bookId = req.params.id;
     try {
-        // console.log(data)
+        const FindOne = await book.findById(bookId);
+        if (!FindOne) {
+            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND })
+        }
         if (data.status) {
-            res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.UNAUTHORIZED.UNAUTHORIZE })
+            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.UNAUTHORIZED.UNAUTHORIZE })
         }
         if (data.isImgDel == "true") {
             data.image = {};
@@ -105,7 +110,7 @@ const updateBookById = catchAsync(async (req, res) => {
         }
         data.status = "pending";
         const result = await book.findByIdAndUpdate(bookId, data, { new: true });
-        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result })
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.UPDATE, result })
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
@@ -117,16 +122,17 @@ const deleteBookById = catchAsync(async (req, res) => {
     const bookId = req.params.id
     try {
         const FindOne = await book.findById(bookId);
-        if (FindOne) {
-            let result;
-            if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentUser.role)) {
-                result = await book.findByIdAndDelete(bookId);
-            } else {
-                result = await book.findOneAndDelete({ _id: bookId, auther: currentUser._id });
-
-            }
-            res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.DELETE })
+        if (!FindOne) {
+            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND })
         }
+        let result;
+        if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentUser.role)) {
+            result = await book.findByIdAndDelete(bookId);
+        } else {
+            result = await book.findOneAndDelete({ _id: bookId, auther: currentUser._id });
+
+        }
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.DELETE })
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
