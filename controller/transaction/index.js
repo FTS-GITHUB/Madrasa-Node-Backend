@@ -10,7 +10,8 @@ router.use(auth.authenticate)
 
 router.post("/", transactionController.addTransaction);
 router.get("/", transactionController.getAllTransaction);
-router.get("/:id",transactionController.getTransactionById);
+router.get("/:id", transactionController.getTransactionById);
+router.patch("/review", transactionController.reviewTransaction);
 router.patch("/:id", transactionController.updateTransactionById);
 router.delete("/:id", transactionController.deleteTransactionById);
 
