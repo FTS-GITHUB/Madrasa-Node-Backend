@@ -22,7 +22,7 @@ const login = catchAsync(async (req, res) => {
         let email = req.body.email,
             password = req.body.password;
         if (!email || !password) {
-            res.status(STATUS_CODE.BAD_REQUEST).json({ message: `${!email ? "Email" : "Password"} is required.`});
+            res.status(STATUS_CODE.BAD_REQUEST).json({ message: `${!email ? "Email" : "Password"} is required.` });
             return;
         }
 
@@ -40,10 +40,10 @@ const login = catchAsync(async (req, res) => {
                 res.status(STATUS_CODE.OK).json({ result: doc, statusCode: STATUS_CODE.OK });
                 return
             }
-            res.status(STATUS_CODE.BAD_REQUEST).json({ message: "Invalid email and password"});
+            res.status(STATUS_CODE.BAD_REQUEST).json({ message: "Invalid email and password" });
             return;
         }
-        res.status(STATUS_CODE.NOT_FOUND).json({ message: "User not found"});
+        res.status(STATUS_CODE.NOT_FOUND).json({ message: "User not found" });
 
     } catch (err) {
         console.log(err);
@@ -95,7 +95,39 @@ const genrateEmailVerificationCode = catchAsync(async (req, res, next) => {
 
         await createUserWithEmail.save();
 
-        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS });
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.TOKEN_SENT_EMAIL });
+
+    } catch (err) {
+        console.log(err);
+        res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err });
+    }
+})
+const changeEmail = catchAsync(async (req, res, next) => {
+    try {
+        let { email, newEmail } = req.body;
+        if (!email) {
+            res.status(STATUS_CODE.BAD_REQUEST).json({ message: "Email is required" });
+            return;
+        }
+        if (!newEmail) {
+            res.status(STATUS_CODE.BAD_REQUEST).json({ message: "New Email is required" });
+            return;
+        }
+
+        const UserData = await userModel.findOne({ email });
+        if (!UserData) {
+            res.status(STATUS_CODE.NOT_FOUND).json({ message: ERRORS.INVALID.NOT_FOUND_EMAIL });
+            return;
+        }
+
+        UserData.email = newEmail
+
+        let genrateCode = await UserData.createEmailVerifyToken();
+        let sendCode = await SendEmail({ email: UserData?.email, subject: "MADRASA.IO AUTHENTICATION", code: genrateCode }, next)
+
+        await UserData.save();
+
+        res.status(STATUS_CODE.OK).json({ message: "Email updated Successful." });
 
     } catch (err) {
         console.log(err);
@@ -193,6 +225,77 @@ const addPassword = catchAsync(async (req, res, next) => {
 })
 
 
+const genrateForgetEmailVerificationCode = catchAsync(async (req, res, next) => {
+    try {
+
+        let email = req.body.email;
+        if (!email) {
+            res.status(STATUS_CODE.BAD_REQUEST).json({ message: "Email is required" });
+            return;
+        }
+        const UserData = await userModel.findOne({ email });
+        if (!UserData) {
+            res.status(STATUS_CODE.NOT_FOUND).json({ message: ERRORS.INVALID.USER_NOT_FOUND });
+            return;
+        }
+
+        let genrateCode = await UserData.createEmailVerifyToken();
+
+        let sendCode = await SendEmail({ email: UserData?.email, subject: "MADRASA.IO AUTHENTICATION", code: genrateCode }, next)
+
+        await UserData.save();
+
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.TOKEN_SENT_EMAIL });
+
+    } catch (err) {
+        console.log(err);
+        res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err });
+    }
+})
+const resetPassword = catchAsync(async (req, res, next) => {
+
+    let { email, password, code } = req.body;
+    try {
+        if (!email || !password || !code) {
+            res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELDS_MISSING, fields: ["email", "password", "code"] })
+            return
+        }
+
+        let UserData = await userModel.findOne({ email })
+        if (!UserData) {
+            res.status(STATUS_CODE.NOT_FOUND).json({ message: ERRORS.INVALID.USER_NOT_FOUND })
+            return
+        }
+
+        // REMOVED AFTER ADDING TOKEN AUTH :
+        let verifyCode = await UserData.verifyEmail({ email: UserData.email, token: code });
+        if (!verifyCode) {
+            res.status(STATUS_CODE.FORBIDDEN).json({ message: ERRORS.UNAUTHORIZED.UNABLE });
+            return;
+        }
+
+        if (password.length <= 7) {
+            res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.INVALID.PASSWORD_LENGTH })
+            return
+        }
+
+        const hashPassword = await bycrypt.hashPassword(password);
+        if (!hashPassword) {
+            res.status(STATUS_CODE.SERVER_ERROR).json({ message: "Hashing Error" });
+            return;
+        }
+        UserData.password = hashPassword;
+
+        await UserData.save();
+        UserData.password = null
+
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.PASSWORD_RESET, result: UserData })
+
+    } catch (err) {
+        res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err });
+    }
+
+})
 
 
-module.exports = { login, validate, genrateEmailVerificationCode, verifyEmailCode, addPassword }
+module.exports = { login, validate, genrateEmailVerificationCode, changeEmail, verifyEmailCode, addPassword, genrateForgetEmailVerificationCode, resetPassword }
