@@ -9,19 +9,19 @@ const addBook = catchAsync(async (req, res) => {
     const currentUser = req.user;
     const data = req.body
     data.auther = currentUser?._id
-    data.category = req.body.category
 
     try {
-        if (!data.title || data.title == "" || !data.detail || data.detail == "" || !data.file || data.file == "" || !data.bookStatus || data.bookStatus == "") {
-            return res.status(STATUS_CODE.ALREADY).json({ message: ERRORS.REQUIRED.FIELD })
+        // console.log(req.body)
+        if (!data.title || data.title == "" || !data.detail || data.detail == "" || !data.image || data.image =="") {
+            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELD })
         }
         if (req.file) {
             data.image = await uploadFile(req.file, data?.image?.url || null);
         }
-        // data.bookFile = await uploadArrayOfFiles(req.file,data?.bookFile?.url || null)
         const newData = new book(data)
         await newData.save()
-        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.CREATED, result: newData })
+        console.log("this Data is from backend",newData)
+        return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.CREATED, result: newData })
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }

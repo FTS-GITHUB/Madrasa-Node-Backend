@@ -15,8 +15,8 @@ const bookSchema = new mongoose.Schema({
     image: {
         type: Object,
     },
-    // bookFile : {
-    //     type:Object,
+    // file : {
+    //     type:String,
     // },
     bookStatus : {
         type: String,
@@ -28,6 +28,9 @@ const bookSchema = new mongoose.Schema({
     },
     price: {
         type: String,
+    },
+    publisher : {
+        type : String
     },
     status: {
         type: String,
