@@ -30,6 +30,11 @@ const updateAccount = catchAsync(async (req, res) => {
     try {
         let currentUser = req.user;
 
+        //Parsing profileImage :
+        if (req.body.profileImage) {
+            req.body.profileImage = JSON.parse(req.body.profileImage)
+        }
+
         if (req.file) {
             req.body.profileImage = await uploadFile(req.file, currentUser?.profileImage?.url || null);
         }
@@ -43,9 +48,9 @@ const updateAccount = catchAsync(async (req, res) => {
             }
         }
 
-        let result = await userModel.findOneAndUpdate({ _id: req.user._id }, req.body, { returnOriginal: false });
+        let result = await userModel.findOneAndUpdate({ _id: req.user._id }, req.body, { new: true });
 
-        if (result.isModified) {
+        if (result) {
             res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.UPDATE, result: result });
             return;
         }
@@ -76,6 +81,12 @@ const addNewUserByAdmn = catchAsync(async (req, res, next) => {
         if (!email || !firstName || !lastName || !role || !gender || !password) {
             res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELDS_MISSING, fields: ["email", "firstName", "lastName", "role", "gender", "password"] })
             return
+        }
+
+        const isExist = await userModel.findOne({ email });
+        if (isExist) {
+            res.status(STATUS_CODE.DUPLICATE).json({ message: ERRORS.UNIQUE.ALREADY_EMAIL });
+            return;
         }
         if (password.length <= 7) {
             res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.INVALID.PASSWORD_LENGTH })
@@ -127,13 +138,13 @@ const getUserById = catchAsync(async (req, res) => {
 
 const reviewUser = catchAsync(async (req, res, next) => {
     try {
-        let { userId, status } = req.body;
-        if (!userId || !status) {
-            res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELDS_MISSING, fields: ["userId , status"] });
+        let { userId, status, role } = req.body;
+        if (!userId || !status || !role) {
+            res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELDS_MISSING, fields: ["userId , status", "role"] });
             return;
         }
 
-        let userData = await userModel.findByIdAndUpdate(userId, { status }, { new: true })
+        let userData = await userModel.findByIdAndUpdate(userId, { status, role }, { new: true })
 
         if (!userData) {
             res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.USER_NOT_FOUND });
@@ -146,5 +157,26 @@ const reviewUser = catchAsync(async (req, res, next) => {
     }
 });
 
+const deleteUser = catchAsync(async (req, res, next) => {
+    try {
+        let { userId } = req.params;
+        if (!userId) {
+            res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELDS_MISSING, fields: ["userId -PARAMS"] });
+            return;
+        }
 
-module.exports = { getProfile, updateAccount, getAllUser, addNewUserByAdmn, getUserById, reviewUser }
+        let userData = await userModel.findByIdAndDelete(userId)
+
+        if (!userData) {
+            res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.USER_NOT_FOUND });
+            return;
+        }
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL });
+    } catch (err) {
+        console.log(err);
+        res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err });
+    }
+});
+
+
+module.exports = { getProfile, updateAccount, getAllUser, addNewUserByAdmn, getUserById, reviewUser, deleteUser }

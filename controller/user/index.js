@@ -26,5 +26,6 @@ router.route("/")
 router.get("/all", auth.restrictTo([roles.ADMIN, roles.SUPERADMIN]), UserController.getAllUser);
 router.patch("/review", auth.restrictTo([roles.SUPERADMIN, roles.ADMIN]), UserController.reviewUser);
 router.get("/:id", auth.restrictTo([roles.ADMIN, roles.SUPERADMIN]), UserController.getUserById);
+router.delete("/:userId", auth.restrictTo([roles.ADMIN, roles.SUPERADMIN]), UserController.deleteUser);
 
 module.exports = router;
