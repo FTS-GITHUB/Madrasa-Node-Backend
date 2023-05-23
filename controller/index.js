@@ -8,6 +8,7 @@ const book = require("./book/index")
 const category = require("./category/index")
 const tag = require("./tag/index")
 const blog = require("./blog/index")
+const meeting = require("./meeting/index")
 
 
 
@@ -25,6 +26,7 @@ const controllers = {
     category,
     tag,
     blog,
+    meeting
 }
 
 module.exports = controllers;

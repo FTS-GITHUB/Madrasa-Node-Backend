@@ -3,6 +3,6 @@ module.exports = {
     ADMIN: "admin",
     SUPERADMIN: "superadmin",
     CLIENT: "client",
-    ENGINEER: "engineer",
-    CONTRACTOR: "contractor"
+    TEACHER: "teacher",
+    STUDENT: "student"
 }

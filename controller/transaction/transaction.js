@@ -92,7 +92,7 @@ const addPaymentMethod = catchAsync(async (req, res) => {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: "Error While Adding Card" })
         }
         let Pay = await STRIPE.charges.create({
-            amount: Number(TransactionData?.balance) * 100,
+            amount: (Number(TransactionData?.balance) * 100).toFixed(0),
             currency: 'usd',
             source: paymentMethod?.id,
             metadata: {
