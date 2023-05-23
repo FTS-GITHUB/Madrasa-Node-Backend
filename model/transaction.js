@@ -1,18 +1,26 @@
 const mongoose = require('mongoose');
 
+
+const shippingSchema = new mongoose.Schema({
+    email: String,
+    firstName: String,
+    lastName: String,
+    country: String,
+    city: String,
+    postalCode: String,
+    contactNumber: String
+}, { _id: false })
 const transactionSchema = new mongoose.Schema({
-    sender: {
+    buyerId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "user"
+        ref: "user",
+        default: null
     },
-    receiver: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "user"
-    },
+    title: String,
     orderPrice: {
         type: String,
     },
-    source: [
+    sources: [
         {
             type: mongoose.Schema.Types.ObjectId,
             ref: "bookModel",
@@ -21,35 +29,45 @@ const transactionSchema = new mongoose.Schema({
     status: {
         type: String,
         enum: {
-            values: ["approved", "rejected", "pending"],
-            message: "Status must Be approve, rejected or pending",
+            values: ["received", "paid", "pending"],
+            message: "Status must Be pending, paid or received",
         },
         default: "pending",
     },
-    transactionType :{
-        type : String,
+    transactionType: {
+        type: String,
         enum: {
-            values : ["initial" , "full"],
-            message : "Transaction Type must be Initial or Full"
+            values: ["initial", "full"],
+            message: "Transaction Type must be Initial or Full"
         },
-        default : "full",
+        default: "full",
     },
-    balance : {
-        type : String,
+    orderType: {
+        type: String,
+        enum: {
+            values: ["book", "tution"],
+            message: "Order Type must be book or tution"
+        },
+        default: "book",
     },
-    charges : {
-        type : String,
+    balance: {
+        type: String,
     },
-    orderType : {
-        type : String,
-    }
+    charges: {
+        type: String,
+    },
+    invoice: {
+        type: String,
+        default: null
+    },
+    shippingDetails: shippingSchema
 },
     {
         timestamps: true,
     })
 
 transactionSchema.pre("find", function (next) {
-    this.populate("sender receiver source")
+    this.populate("buyerId sources")
     next();
 })
 
