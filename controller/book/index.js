@@ -6,12 +6,12 @@ const multer = require("../../utils/multer")
 
 
 
+router.get("/public", bookController.getPublicBook);
 router.use(auth.authenticate)
 
 
 router.post("/",multer.single("file"), bookController.addBook);
 router.get("/", bookController.getAllBook);
-router.get("/public", bookController.getPublicBook);
 router.get("/:id",bookController.getBookById);
 router.patch("/reviewBook",bookController.reviewBook);
 router.patch("/:id",multer.single("file"), bookController.updateBookById);

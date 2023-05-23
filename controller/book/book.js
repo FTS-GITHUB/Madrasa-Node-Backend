@@ -12,7 +12,7 @@ const addBook = catchAsync(async (req, res) => {
 
     try {
         // console.log(req.body)
-        if (!data.title || data.title == "" || !data.detail || data.detail == "" || !data.image || data.image =="") {
+        if (!data.title || data.title == "" || !data.detail || data.detail == "" ) {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELD })
         }
         if (req.file) {
