@@ -13,5 +13,6 @@ router.use(routes.BOOK, controllers.book);
 router.use(routes.CATEGORY, controllers.category);
 router.use(routes.TAG, controllers.tag);
 router.use(routes.BLOG, controllers.blog);
+router.use(routes.MEETING, controllers.meeting);
 
 module.exports = router;

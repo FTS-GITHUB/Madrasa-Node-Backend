@@ -5,10 +5,10 @@ module.exports = {
   MODEL: `/model`,
   PROJECT: `/project`,
   BOOKING: `/booking`,
-  TRANSACTION:`/transaction`,
-  BOOK:`/book`,
-  CATEGORY:`/category`,
-  TAG:`/tag`,
-  BLOG:`/blog`,
-
+  TRANSACTION: `/transaction`,
+  BOOK: `/book`,
+  CATEGORY: `/category`,
+  TAG: `/tag`,
+  BLOG: `/blog`,
+  MEETING: `/meeting`,
 };
