@@ -10,6 +10,6 @@ mongoose
   })
   .then(() => {
     console.log("Database connected")
-    mongoose.set("debug", true)
+    // mongoose.set("debug", true)
   })
   .catch((err) => console.log("Database connection error", err));
