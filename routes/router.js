@@ -14,5 +14,6 @@ router.use(routes.CATEGORY, controllers.category);
 router.use(routes.TAG, controllers.tag);
 router.use(routes.BLOG, controllers.blog);
 router.use(routes.MEETING, controllers.meeting);
+router.use(routes.SEARCH, controllers.search)
 
 module.exports = router;

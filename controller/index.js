@@ -9,6 +9,7 @@ const category = require("./category/index")
 const tag = require("./tag/index")
 const blog = require("./blog/index")
 const meeting = require("./meeting/index")
+const search = require("./search/index")
 
 
 
@@ -26,7 +27,8 @@ const controllers = {
     category,
     tag,
     blog,
-    meeting
+    meeting,
+    search,
 }
 
 module.exports = controllers;
