@@ -8,6 +8,7 @@ const transactionController = require("./transaction");
 
 router.post("/", transactionController.addTransaction);
 router.post("/pay", transactionController.addPaymentMethod);
+router.post('/free', transactionController.addFreeTransaction)
 
 router.use(auth.authenticate)
 
