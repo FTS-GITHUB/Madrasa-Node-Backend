@@ -62,6 +62,42 @@ const addTransaction = catchAsync(async (req, res) => {
 
 })
 
+
+// Add Free Transaction At this time Buy Free Book
+const addFreeTransaction = catchAsync(async(req, res)=>{
+    let {buyerId , sources , orderPrice, shippingDetails, orderType} = req.body;
+    let {firstName, lastName, email} = shippingDetails;
+    console.log("-----", req.body)
+
+    try{
+        if(orderPrice>0){
+            return res.status(STATUS_CODE.BAD_REQUEST).json({message:"Source is Not Free"})
+        }
+        if(!sources || !orderType || !shippingDetails || !email || !firstName || !lastName){
+            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELDS_MISSING, fields: { root: ["sources", "orderType", "shippingDetails"], shippingDetails: ["firstName", "lastName", "email"] } })
+        }
+
+        let findUser = await UserModel.findOne({ email: email })
+        req.body.buyerId = findUser?._id || null;
+        req.body.charges = "Free"
+        req.body.balance = "Free"
+        req.body.orderPrice = "Free"
+        req.body.status = "paid"
+        let findBook = await BookModel.findOne({_id : sources})
+        req.body.title = findBook?.title.slice(0,10)
+
+        let newTransaction = new TransactionModel(req.body)
+        await newTransaction.save()
+
+        let result = findBook
+        return res.status(STATUS_CODE.OK).json({message : SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS , result})
+    } catch (err) {
+        console.log(err);
+        res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
+    }
+
+})
+
 // This is Used to add Paymentds like Cards | BanckAccounts Etc , Post API
 const addPaymentMethod = catchAsync(async (req, res) => {
     // As In This Case the user maybe a Register User or unregister User :
@@ -139,11 +175,11 @@ const getTransactionById = catchAsync(async (req, res) => {
     let transactionId = req.params.id
 
     try {
-        const FindOne = await transaction.findById(transactionId)
+        const FindOne = await transactionModel.findById(transactionId)
         if (!FindOne) {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND })
         }
-        const result = await transaction.findById(transactionId);
+        const result = await transactionModel.findById(transactionId);
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result })
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
@@ -157,12 +193,12 @@ const reviewTransaction = catchAsync(async (req, res) => {
         if (!status || status == "") {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELD })
         }
-        const FindOne = await transaction.findOne({ _id: transactionId, status: "pending" })
+        const FindOne = await transactionModel.findOne({ _id: transactionId, status: "pending" })
         if (FindOne) {
             if (FindOne.status == "approved" || FindOne.status == "rejected") {
                 res.status(STATUS_CODE.BAD_REQUEST).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.ALREADY })
             } else {
-                const result = await transaction.findOneAndUpdate({ _id: transactionId }, { $set: { status: status } }, { new: true })
+                const result = await transactionModel.findOneAndUpdate({ _id: transactionId }, { $set: { status: status } }, { new: true })
                 return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.UPDATE, result })
             }
         } else {
@@ -178,12 +214,12 @@ const updateTransactionById = catchAsync(async (req, res) => {
     const updateData = req.body
     const transactionId = req.params.id;
     try {
-        const FindOne = await transaction.findById(transactionId)
+        const FindOne = await transactionModel.findById(transactionId)
         if (!FindOne) {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND })
         }
         updateData.status = "pending"
-        const result = await transaction.findByIdAndUpdate(transactionId, { $set: updateData }, { new: true });
+        const result = await transactionModel.findByIdAndUpdate(transactionId, { $set: updateData }, { new: true });
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.UPDATE, result })
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
@@ -195,15 +231,15 @@ const deleteTransactionById = catchAsync(async (req, res) => {
     const currentUser = req.user
     const transactionId = req.params.id
     try {
-        const FindOne = await transaction.findById(transactionId)
+        const FindOne = await transactionModel.findById(transactionId)
         if (!FindOne) {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND })
         }
         let result;
         if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentUser.role)) {
-            result = await transaction.findByIdAndDelete(transactionId);
+            result = await transactionModel.findByIdAndDelete(transactionId);
         } else {
-            result = await transaction.findOneAndDelete({ _id: transactionId, auther: currentUser._id });
+            result = await transactionModel.findOneAndDelete({ _id: transactionId, auther: currentUser._id });
         }
         if (result) {
             return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.DELETE })
@@ -216,4 +252,4 @@ const deleteTransactionById = catchAsync(async (req, res) => {
 })
 
 
-module.exports = { addPaymentMethod, addTransaction, getAllTransaction, getTransactionById, reviewTransaction, updateTransactionById, deleteTransactionById };
+module.exports = { addPaymentMethod, addTransaction, getAllTransaction, getTransactionById, reviewTransaction, updateTransactionById, deleteTransactionById, addFreeTransaction };
