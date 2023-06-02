@@ -1,3 +1,5 @@
+
+
 exports.SUCCESS_MESSAGES = {
   SUCCESS: 'Successful',
   CREATED: 'Created Successfully',
@@ -18,5 +20,6 @@ exports.SUCCESS_MESSAGES = {
   PRODUCT_APPROVED: 'Your product is approved by the admins.',
   SERVICE_APPROVED: 'Your service is approved by the admins',
   REQUEST_UPDATED: 'Your request is updated',
-  ACCOUNT_CREATED_SUCCESS: "Account Created Successful"
+  ACCOUNT_CREATED_SUCCESS: "Account Created Successful",
+  SUBSCRIPTION: " You are  successfully Subscribed"
 };

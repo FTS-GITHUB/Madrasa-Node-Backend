@@ -10,6 +10,7 @@ const tag = require("./tag/index")
 const blog = require("./blog/index")
 const meeting = require("./meeting/index")
 const search = require("./search/index")
+const subscription = require("./subscription/index")
 
 
 
@@ -29,6 +30,7 @@ const controllers = {
     blog,
     meeting,
     search,
+    subscription
 }
 
 module.exports = controllers;
