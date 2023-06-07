@@ -8,7 +8,8 @@ const shippingSchema = new mongoose.Schema({
     country: String,
     city: String,
     postalCode: String,
-    contactNumber: String
+    contactNumber: String,
+    address: String,
 }, { _id: false })
 const transactionSchema = new mongoose.Schema({
     buyerId: {
