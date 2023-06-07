@@ -11,5 +11,6 @@ module.exports = {
   TAG: `/tag`,
   BLOG: `/blog`,
   MEETING: `/meeting`,
-  SEARCH:'/search'
+  SEARCH:'/search',
+  SUBSCRIPTION:`/Subscribe`
 };
