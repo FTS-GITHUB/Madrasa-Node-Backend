@@ -30,7 +30,6 @@ const SendEmail = async ({ email, subject, code }, next) => {
         let res = await mailTransporter.sendMail(mailDetails)
         return res
     } catch (err) {
-        console.log("error",err)
         next(err)
     }
 

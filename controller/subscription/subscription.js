@@ -37,7 +37,7 @@ const emailSubscription = catchAsync(async (req, res, next) => {
       {
         email,
         subject: "Subscription Confirmation",
-        // code: "Thank you for subscribing!",
+        code: "Thank you for subscribing!",
       },
       next
     );
