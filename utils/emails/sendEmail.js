@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer');
-const VerifyEmailTemplate = require("./templates/VerifyEmail");
+// const VerifyEmailTemplate = require("./templates/VerifyEmail");
+const VerifyEmailTemplate = require("./templates/VerifyEmailTEMP");
 require('dotenv').config();
 
 const SendEmail = async ({ email, subject, code }, next) => {

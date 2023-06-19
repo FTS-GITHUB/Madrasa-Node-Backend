@@ -2,6 +2,7 @@ module.exports = {
   AUTH: `/auth`,
   USER: `/user`,
   ADMIN: `/admin`,
+  ROLE: `/role`,
   MODEL: `/model`,
   PROJECT: `/project`,
   BOOKING: `/booking`,

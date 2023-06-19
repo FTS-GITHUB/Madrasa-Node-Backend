@@ -1,5 +1,6 @@
 const auth = require("./auth/index");
 const admin = require("./admin/index");
+const role = require("./role/index");
 const user = require("./user/index");
 const project = require("./projectDetail/index")
 const booking = require("./booking/index")
@@ -21,6 +22,7 @@ const controllers = {
     auth,
     admin,
     user,
+    role,
     project,
     booking,
     transaction,
