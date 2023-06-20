@@ -9,7 +9,6 @@ const RouteSchema = new mongoose.Schema({
     },
     key: {
         type: String,
-        unique: true,
         required: [true, "Route Name is Requried"]
     },
     permissions: {
@@ -26,7 +25,11 @@ const RoleSchema = new mongoose.Schema({
         unique: true,
         required: [true, "Role Name is Required"]
     },
-    routes: [RouteSchema]
+    routes: [RouteSchema],
+    deleteAble: {
+        type: Boolean,
+        default: false
+    }
 },
     {
         timestamps: true,

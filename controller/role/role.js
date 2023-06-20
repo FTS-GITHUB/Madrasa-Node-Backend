@@ -25,6 +25,7 @@ const createRole = catchAsync(async (req, res, next) => {
         await result.save();
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result })
     } catch (err) {
+        console.log("lksjdalsjdlasd", err);
         res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR })
     }
 })
