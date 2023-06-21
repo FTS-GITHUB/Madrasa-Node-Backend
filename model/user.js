@@ -29,11 +29,8 @@ const userSchema = new mongoose.Schema({
         },
     },
     role: {
-        type: String,
-        enum: {
-            values: ["student", "teacher", "admin" , "superAdmin"],
-            message: "Role must be admin , teacher OR student",
-        },
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "RoleModel"
     },
     phone: {
         type: String,
@@ -89,7 +86,10 @@ const userSchema = new mongoose.Schema({
     token: {
         type: String,
     },
-
+    isSuperAdmin: {
+        type: Boolean,
+        default: false
+    }
 }, {
     timestamps: true,
 })
@@ -99,6 +99,19 @@ userSchema.virtual("fullName")
     .get(() => {
         return `${this.firstName} ${this.lastName}`
     })
+
+userSchema.pre("find", function (next) {
+    this.populate("role")
+    next();
+})
+userSchema.pre("findOne", function (next) {
+    this.populate("role")
+    next();
+})
+userSchema.pre("find", function (next) {
+    this.populate("role")
+    next();
+})
 
 
 // Methods :

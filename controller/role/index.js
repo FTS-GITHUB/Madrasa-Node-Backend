@@ -9,9 +9,9 @@ const roles = require("../../constants/roles");
 
 
 
+router.get("/", RoleController.getAllRoles);
 router.use(auth.authenticate);
 
-router.get("/", RoleController.getAllRoles);
 router.post("/", RoleController.createRole);
 router.patch("/:id", RoleController.updateRole);
 router.delete("/:id", RoleController.deleteRole);
