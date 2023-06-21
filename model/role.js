@@ -26,7 +26,7 @@ const RoleSchema = new mongoose.Schema({
         required: [true, "Role Name is Required"]
     },
     routes: [RouteSchema],
-    deleteAble: {
+    notDeleteAble: {
         type: Boolean,
         default: false
     }

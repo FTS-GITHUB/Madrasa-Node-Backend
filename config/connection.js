@@ -24,7 +24,8 @@ mongoose
             key: "/transactions",
             permissions: ["view"]
           }
-        ]
+        ],
+        notDeleteAble: true
       })
     }
     if (!findTeacherRole) {
@@ -48,7 +49,7 @@ mongoose
             permissions: ["view", "create", "edit", "delete"]
           },
         ],
-        deleteAble: false
+        notDeleteAble: true
       })
     }
     // mongoose.set("debug", true)
