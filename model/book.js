@@ -15,10 +15,10 @@ const bookSchema = new mongoose.Schema({
     image: {
         type: Object,
     },
-    // file : {
-    //     type:String,
-    // },
-    bookStatus : {
+    file: {
+        type: Object,
+    },
+    bookStatus: {
         type: String,
         enum: {
             values: ["Paid", "Unpaid"],
@@ -29,8 +29,8 @@ const bookSchema = new mongoose.Schema({
     price: {
         type: String,
     },
-    publisher : {
-        type : String
+    publisher: {
+        type: String
     },
     status: {
         type: String,
@@ -49,8 +49,8 @@ const bookSchema = new mongoose.Schema({
         ref: "CategoryModel"
     },
     isImgDel: {
-        type : Boolean,
-        default : false
+        type: Boolean,
+        default: false
     },
 
 },
@@ -58,11 +58,11 @@ const bookSchema = new mongoose.Schema({
         timestamps: true,
     })
 
-    
-    bookSchema.pre("find", function (next) {
-        this.populate("auther category")
-        next();
-    })
+
+bookSchema.pre("find", function (next) {
+    this.populate("auther category")
+    next();
+})
 
 const bookModel = mongoose.model('bookModel', bookSchema)
 module.exports = bookModel;
