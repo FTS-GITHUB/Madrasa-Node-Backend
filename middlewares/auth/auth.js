@@ -35,7 +35,7 @@ const restrictTo = (role) => (
         if (req.user?.isSuperAdmin) {
             next();
             return;
-        } else if (req.user && role.includes(req.user.role?.name)) {
+        } else if (req.user && role.includes(req.user.role?.name?.toLowerCase())) {
             next();
             return;
         }
