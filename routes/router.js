@@ -6,6 +6,7 @@ const router = express();
 router.use(routes.AUTH, controllers.auth);
 router.use(routes.ADMIN, controllers.admin);
 router.use(routes.USER, controllers.user);
+router.use(routes.ROLE, controllers.role);
 router.use(routes.PROJECT, controllers.project);
 router.use(routes.BOOKING, controllers.booking);
 router.use(routes.TRANSACTION, controllers.transaction);

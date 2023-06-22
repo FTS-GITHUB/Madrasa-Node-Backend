@@ -12,15 +12,18 @@ const addBook = catchAsync(async (req, res) => {
 
     try {
         // console.log(req.body)
-        if (!data.title || data.title == "" || !data.detail || data.detail == "" ) {
+        if (!data.title || data.title == "" || !data.detail || data.detail == "") {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELD })
         }
-        if (req.file) {
-            data.image = await uploadFile(req.file, data?.image?.url || null);
+        if (req?.files?.cover) {
+            data.image = await uploadFile(req?.files?.cover[0], data?.image?.url || null);
+        }
+        if (req?.files?.file) {
+            data.file = await uploadFile(req?.files?.file[0], null);
         }
         const newData = new book(data)
         await newData.save()
-        console.log("this Data is from backend",newData)
+        console.log("this Data is from backend", newData)
         return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.CREATED, result: newData })
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })

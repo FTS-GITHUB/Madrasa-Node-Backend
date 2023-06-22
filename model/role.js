@@ -4,16 +4,18 @@ const mongoose = require('mongoose');
 
 
 const RouteSchema = new mongoose.Schema({
-    name: {
+    label: {
+        type: String
+    },
+    key: {
         type: String,
-        unique: true,
         required: [true, "Route Name is Requried"]
     },
     permissions: {
         type: [String],
         enum: {
-            values: ["get", "create", "edit", "delete"],
-            message: "Permissions must be get, create, edit or delete",
+            values: ["view", "create", "edit", "delete"],
+            message: "Permissions must be view, create, edit or delete",
         },
     }
 })
@@ -23,7 +25,11 @@ const RoleSchema = new mongoose.Schema({
         unique: true,
         required: [true, "Role Name is Required"]
     },
-    routes: [RouteSchema]
+    routes: [RouteSchema],
+    notDeleteAble: {
+        type: Boolean,
+        default: false
+    }
 },
     {
         timestamps: true,
