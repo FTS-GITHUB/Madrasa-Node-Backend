@@ -193,15 +193,18 @@ const EditProfile = catchAsync(async(req, res)=>{
         if(userData?.password?.length<8 || userData?.confirmPassword?.length<8){
             return res.status(STATUS_CODE.BAD_REQUEST).json({message: "Password Must be Greater Then 8"})
         }
-        if (userData.password) {
-            const hashPassword = await bycrypt.hashPassword(userData.password);
+        if (newData.password) {
+            const hashPassword = await bycrypt.hashPassword(newData.password);
             if (hashPassword) {
-                userData.password = hashPassword;
+                newData.password = hashPassword;
             }
+        }
+        if(req.file){
+            newData.profileImage = await uploadFile(req.file, newData?.profileImage?.url || null);
         }
         const FindOne = await userModel.findById(userId)
         if(FindOne){
-            result = await userModel.findByIdAndUpdate(userId, newData, {new:true})
+            result = await userModel.findByIdAndUpdate(userId, newData, {new:true}).populate('role')
             // console.log("Find SuccessFully", newData)
         }
         else{
@@ -209,6 +212,7 @@ const EditProfile = catchAsync(async(req, res)=>{
         }
         return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL ,result });
     }catch(err){
+        console.log(err)
         return res.status(STATUS_CODE.SERVER_ERROR).json({message:ERRORS.PROGRAMMING.SOME_ERROR, err})
     }
 })
