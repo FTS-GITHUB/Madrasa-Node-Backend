@@ -179,4 +179,39 @@ const deleteUser = catchAsync(async (req, res, next) => {
 });
 
 
-module.exports = { getProfile, updateAccount, getAllUser, addNewUserByAdmn, getUserById, reviewUser, deleteUser }
+// Here to start Edit Profile User Data API
+
+const EditProfile = catchAsync(async(req, res)=>{
+    let userData = req.body
+    let userId = req.params.id
+    let {confirmPassword , ...newData} = userData
+    // console.log("this is user id", userId, "this is userData", userData)
+    try{
+        if(userData?.password !=userData?.confirmPassword){
+            return res.status(STATUS_CODE.BAD_REQUEST).json({message: "Password Not Same"})
+        }
+        if(userData?.password?.length<8 || userData?.confirmPassword?.length<8){
+            return res.status(STATUS_CODE.BAD_REQUEST).json({message: "Password Must be Greater Then 8"})
+        }
+        if (userData.password) {
+            const hashPassword = await bycrypt.hashPassword(userData.password);
+            if (hashPassword) {
+                userData.password = hashPassword;
+            }
+        }
+        const FindOne = await userModel.findById(userId)
+        if(FindOne){
+            result = await userModel.findByIdAndUpdate(userId, newData, {new:true})
+            // console.log("Find SuccessFully", newData)
+        }
+        else{
+            console.log("User Not Found")
+        }
+        return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL ,result });
+    }catch(err){
+        return res.status(STATUS_CODE.SERVER_ERROR).json({message:ERRORS.PROGRAMMING.SOME_ERROR, err})
+    }
+})
+
+
+module.exports = { getProfile, updateAccount, getAllUser, addNewUserByAdmn, getUserById, reviewUser, deleteUser,EditProfile }

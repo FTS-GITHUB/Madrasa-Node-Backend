@@ -3,6 +3,10 @@ const validator = require("validator");
 const crypto = require("crypto");
 
 const userSchema = new mongoose.Schema({
+    username : {
+        type : String,
+        unique : true,
+    },
     profileImage: {
         type: Object,
     },
@@ -43,6 +47,30 @@ const userSchema = new mongoose.Schema({
     },
     bio: {
         type: String,
+    },
+    dob : {
+        type : String,
+    },
+    nationality : {
+        type : String,
+    },
+    residence : {
+        type : String,
+    },
+    languages : {
+        type : Array,
+    },
+    primaryLanguage : {
+        type : String,
+    },
+    participation : {
+        type : String,                
+    },
+    education : {
+        type : Array,
+    },
+    work : {
+        type : Array,
     },
     password: {
         type: String,
