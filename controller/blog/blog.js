@@ -31,7 +31,7 @@ const getAllBlog = catchAsync(async (req, res) => {
     try {
         let currentUser = req.user;
         let result;
-        if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentUser.role)) {
+        if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentUser.role?.name) || currentUser?.isSuperAdmin) {
             result = await blog.find({});
         } else {
             result = await blog.find({ auther: currentUser._id });

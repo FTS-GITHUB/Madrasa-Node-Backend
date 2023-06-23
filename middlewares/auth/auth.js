@@ -1,7 +1,12 @@
 const STATUS_CODE = require("../../constants/statusCode");
 const userModel = require("../../model/user");
+const RoleModel = require("../../model/role");
 const jwt = require("../../utils/jwt");
 const catchAsync = require("../../utils/catchAsync");
+
+
+
+
 
 const authenticate = catchAsync(async (req, res, next) => {
 

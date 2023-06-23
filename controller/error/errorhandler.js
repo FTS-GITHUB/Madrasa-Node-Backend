@@ -7,6 +7,7 @@ const handleCastErrorDB = (err) => {
 };
 const handleDuplicatefieldsDB = (err) => {
   const value = err.message.match(/(["'])(?:(?=(\\?))\2.)*?\1/)[0];
+  console.log( "adasdadasdadadsds", value);
   const message = `Duplicate Entery ${value} Already Exists.`;
   return new AppError(message, 400);
 };
@@ -48,6 +49,7 @@ const sendErrorPro = (err, req, res) => {
   });
 };
 module.exports = (err, req, res, next) => {
+  console.log("hited");
   err.statusCode = err.statusCode || 500;
   err.status = err.status || STATUS.ERROR;
   if (process.env.NODE_ENV === "development") {

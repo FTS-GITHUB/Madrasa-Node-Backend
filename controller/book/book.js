@@ -36,7 +36,7 @@ const getAllBook = catchAsync(async (req, res) => {
     try {
         let currentUser = req.user;
         let result;
-        if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentUser.role)) {
+        if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentUser.role?.name) || currentUser?.isSuperAdmin) {
             result = await book.find({});
         } else {
             result = await book.find({ auther: currentUser._id });

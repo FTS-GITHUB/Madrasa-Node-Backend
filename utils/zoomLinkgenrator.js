@@ -7,7 +7,7 @@ const GenrateLink = async ({ title }, next) => {
     try {
         const tokenPayload = {
             iss: process.env.ZOOM_CLIENT_ID,
-            exp: Math.floor(Date.now() / 1000) + 60,
+            exp: Math.floor(Date.now() / 1000) + 6000,
         };
         const token = jwt.sign(tokenPayload, process.env.ZOOM_PRIVATE_KEY);
 
