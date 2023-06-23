@@ -11,7 +11,8 @@ router.use(auth.authenticate)
 
 router.post("/", tagController.addTag);
 router.get("/", tagController.getAllTag);
-router.get("/:id",tagController.getTagById);
-router.delete("/:id",auth.restrictTo([roles.ADMIN, roles.SUPERADMIN]), tagController.deleteTagById);
+router.get("/:id", tagController.getTagById);
+router.delete("/:id", tagController.deleteTagById);
+// router.delete("/:id", auth.restrictTo([roles.ADMIN, roles.SUPERADMIN]), tagController.deleteTagById);
 
 module.exports = router;
