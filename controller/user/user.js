@@ -216,6 +216,50 @@ const EditProfile = catchAsync(async (req, res) => {
         return res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
+const AddEducation = catchAsync(async (req, res) => {
+    let userData = req.body
+    let userId = req.params.id
+    // console.log("this is user id", userId, "this is userData", userData)
+    try {
+        if (req.file) {
+            userData.image = await uploadFile(req.file, userData?.image?.url || null);
+        }
+        const FindOne = await userModel.findById(userId)
+        if (FindOne) {
+            result = await userModel.findByIdAndUpdate(userId, { $push: { education: userData } }, { new: true }).populate('role')
+            // console.log("Find SuccessFully", newData)
+        }
+        else {
+            console.log("User Not Found")
+        }
+        return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result });
+    } catch (err) {
+        console.log(err)
+        return res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
+    }
+})
+const AddWork = catchAsync(async (req, res) => {
+    let userData = req.body
+    let userId = req.params.id
+    // console.log("this is user id", userId, "this is userData", userData)
+    try {
+        if (req.file) {
+            userData.image = await uploadFile(req.file, userData?.image?.url || null);
+        }
+        const FindOne = await userModel.findById(userId)
+        if (FindOne) {
+            result = await userModel.findByIdAndUpdate(userId, { $push: { work: userData } }, { new: true }).populate('role')
+            // console.log("Find SuccessFully", userData)
+        }
+        else {
+            console.log("User Not Found")
+        }
+        return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result });
+    } catch (err) {
+        console.log(err)
+        return res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
+    }
+})
 
 
-module.exports = { getProfile, updateAccount, getAllUser, addNewUserByAdmn, getUserById, reviewUser, deleteUser, EditProfile }
+module.exports = { getProfile, updateAccount, getAllUser, addNewUserByAdmn, getUserById, reviewUser, deleteUser, EditProfile, AddEducation, AddWork }
