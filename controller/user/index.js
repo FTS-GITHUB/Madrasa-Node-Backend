@@ -11,6 +11,7 @@ const multer = require("../../utils/multer");
 
 
 
+router.get("/allteacher", UserController.getTeacherUser);
 
 // MiddleWare :
 router.use(auth.authenticate);

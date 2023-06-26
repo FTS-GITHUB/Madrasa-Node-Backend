@@ -75,6 +75,33 @@ const getAllUser = catchAsync(async (req, res) => {
     }
 })
 
+
+
+
+// Get Just Teachers
+const getTeacherUser = catchAsync(async (req,res)=>{
+    try{
+        let FindAllUsers = await userModel.find({}).populate('role')
+        let result = [];
+        if(FindAllUsers){
+            FindAllUsers.filter((data)=>{
+                if(data?.role?.name=='teacher'){
+                    result.push(data)        
+                }
+            })
+                }
+        return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result });
+    }catch(err){
+        console.log("this is error", err)
+        return res.status(STATUS_CODE.SERVER_ERROR).json({ statusCode: STATUS_CODE.SERVER_ERROR });
+
+    }
+})
+
+
+
+
+
 const addNewUserByAdmn = catchAsync(async (req, res, next) => {
     try {
         let { firstName, lastName, email, role, gender, password } = req.body;
@@ -262,4 +289,4 @@ const AddWork = catchAsync(async (req, res) => {
 })
 
 
-module.exports = { getProfile, updateAccount, getAllUser, addNewUserByAdmn, getUserById, reviewUser, deleteUser, EditProfile, AddEducation, AddWork }
+module.exports = { getProfile, updateAccount, getAllUser,getTeacherUser, addNewUserByAdmn, getUserById, reviewUser, deleteUser, EditProfile, AddEducation, AddWork }
