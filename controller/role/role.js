@@ -15,7 +15,7 @@ const getAllRoles = catchAsync(async (req, res, next) => {
 
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result })
     } catch (err) {
-        res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR })
+        res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 
@@ -25,8 +25,8 @@ const createRole = catchAsync(async (req, res, next) => {
         await result.save();
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result })
     } catch (err) {
-        console.log("lksjdalsjdlasd", err);
-        res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR })
+        next(err)
+        // res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 
@@ -39,8 +39,7 @@ const updateRole = catchAsync(async (req, res, next) => {
         const result = await RolesModel.findByIdAndUpdate(id, req.body, { new: true })
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result })
     } catch (err) {
-        console.log("lksjdalsjdlasd", err);
-        res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR })
+        res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 
@@ -60,8 +59,7 @@ const deleteRole = catchAsync(async (req, res, next) => {
         const result = await RolesModel.findByIdAndDelete(id)
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result })
     } catch (err) {
-        console.log("lksjdalsjdlasd", err);
-        res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR })
+        res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 

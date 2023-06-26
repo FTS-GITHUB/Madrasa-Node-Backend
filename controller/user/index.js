@@ -20,7 +20,8 @@ router.route("/")
     .get(UserController.getProfile)
     .patch(multer.single("file"), UserController.updateAccount)
     // ADMIN Route :
-    .post(auth.restrictTo([roles.ADMIN, roles.SUPERADMIN]), multer.single("file"), UserController.addNewUserByAdmn)
+    .post(multer.single("file"), UserController.addNewUserByAdmn)
+// .post(auth.restrictTo([roles.ADMIN, roles.SUPERADMIN]), multer.single("file"), UserController.addNewUserByAdmn)
 
 // ADMIN Routes :
 router.get("/all", auth.restrictTo([roles.ADMIN, roles.SUPERADMIN]), UserController.getAllUser);

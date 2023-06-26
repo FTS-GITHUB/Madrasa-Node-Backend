@@ -11,7 +11,8 @@ router.use(auth.authenticate)
 
 router.post("/", categoryController.addCategory);
 router.get("/", categoryController.getAllCategory);
-router.get("/:id",categoryController.getCategoryById);
-router.delete("/:id",auth.restrictTo([roles.ADMIN, roles.SUPERADMIN]), categoryController.deleteCategoryById);
+router.get("/:id", categoryController.getCategoryById);
+// router.delete("/:id",auth.restrictTo([roles.ADMIN, roles.SUPERADMIN]), categoryController.deleteCategoryById);
+router.delete("/:id", categoryController.deleteCategoryById);
 
 module.exports = router;

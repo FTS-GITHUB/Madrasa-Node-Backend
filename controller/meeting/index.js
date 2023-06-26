@@ -10,7 +10,7 @@ const roles = require("../../constants/roles");
 const multer = require("../../utils/multer");
 
 
-router.get("/public/:shortLink",MeetingController.getMeetingLinkWithShortLink)
+router.get("/public/:shortLink", MeetingController.getMeetingLinkWithShortLink)
 
 // MiddleWare :
 router.use(auth.authenticate);
@@ -18,6 +18,7 @@ router.use(auth.authenticate);
 // Routes :
 router.route("/")
     .get(MeetingController.getAllMeetings)
-    .post(auth.restrictTo([roles.ADMIN, roles.SUPERADMIN, roles.TEACHER]), MeetingController.createMeetinglink)
+    .post(MeetingController.createMeetinglink)
+// .post(auth.restrictTo([roles.ADMIN, roles.SUPERADMIN, roles.TEACHER]), MeetingController.createMeetinglink)
 
 module.exports = router;
