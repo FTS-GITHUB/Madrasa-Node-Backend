@@ -226,7 +226,7 @@ const AddEducation = catchAsync(async (req, res) => {
         }
         const FindOne = await userModel.findById(userId)
         if (FindOne) {
-            result = await userModel.findByIdAndUpdate(userId, { $push: { education: { userData } } }, { new: true }).populate('role')
+            result = await userModel.findByIdAndUpdate(userId, { $push: { education: userData } }, { new: true }).populate('role')
             // console.log("Find SuccessFully", newData)
         }
         else {
@@ -244,12 +244,12 @@ const AddWork = catchAsync(async (req, res) => {
     // console.log("this is user id", userId, "this is userData", userData)
     try {
         if (req.file) {
-            userData.image = await uploadFile(req.file, newData?.image?.url || null);
+            userData.image = await uploadFile(req.file, userData?.image?.url || null);
         }
         const FindOne = await userModel.findById(userId)
         if (FindOne) {
-            result = await userModel.findByIdAndUpdate(userId, { $push: { work: { userData } } }, { new: true }).populate('role')
-            // console.log("Find SuccessFully", newData)
+            result = await userModel.findByIdAndUpdate(userId, { $push: { work: userData } }, { new: true }).populate('role')
+            // console.log("Find SuccessFully", userData)
         }
         else {
             console.log("User Not Found")
