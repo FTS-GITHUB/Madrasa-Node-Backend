@@ -262,4 +262,6 @@ const AddWork = catchAsync(async (req, res) => {
 })
 
 
+
 module.exports = { getProfile, updateAccount, getAllUser, addNewUserByAdmn, getUserById, reviewUser, deleteUser, EditProfile, AddEducation, AddWork }
+
