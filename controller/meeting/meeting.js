@@ -164,4 +164,20 @@ const createPaidMeetinglink = catchAsync(async (req, res, next) => {
     }
 })
 
-module.exports = { getAllMeetings, createMeetinglink, getMeetingLinkWithShortLink, createPaidMeetinglink , getAllPaidMeetings };
+const startPaidMeeting = catchAsync(async (req, res, next) => {
+    let currentUser = req.user
+    let { id } = req.params;
+    try {
+        const result = await BookingModel.findByIdAndUpdate(id, { status: "completed" })
+        if (!result) {
+            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND, error: "Meeting Not Found" })
+        }
+
+        res.status(STATUS_CODE.CREATED).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result })
+    } catch (err) {
+        console.log("&&&&&&&&&&", err);
+        res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
+    }
+})
+
+module.exports = { getAllMeetings, createMeetinglink, getMeetingLinkWithShortLink, createPaidMeetinglink, getAllPaidMeetings , startPaidMeeting };
