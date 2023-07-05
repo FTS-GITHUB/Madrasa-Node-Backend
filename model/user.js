@@ -3,9 +3,9 @@ const validator = require("validator");
 const crypto = require("crypto");
 
 const userSchema = new mongoose.Schema({
-    username : {
-        type : String,
-        unique : true,
+    username: {
+        type: String,
+        unique: true,
     },
     profileImage: {
         type: Object,
@@ -45,30 +45,31 @@ const userSchema = new mongoose.Schema({
     bio: {
         type: String,
     },
-    dob : {
-        type : String,
+    dob: {
+        type: String,
     },
-    nationality : {
-        type : String,
+    nationality: {
+        type: String,
     },
-    residence : {
-        type : String,
+    residence: {
+        type: String,
     },
-    languages : {
-        type : Array,
+    languages: {
+        type: Array,
     },
-    primaryLanguage : {
-        type : String,
+    primaryLanguage: {
+        type: String,
     },
-    participation : {
-        type : String,                
+    participation: {
+        type: String,
     },
-    education : {
-        type : Array,
+    education: {
+        type: Array,
     },
-    work : {
-        type : Array,
+    work: {
+        type: Array,
     },
+    rate: Number,
     password: {
         type: String,
         minlength: [8, "Password minimum length must be 8 characters"],
