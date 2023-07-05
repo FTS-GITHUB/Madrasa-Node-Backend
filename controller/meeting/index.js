@@ -11,6 +11,7 @@ const multer = require("../../utils/multer");
 
 
 router.get("/public/:shortLink", MeetingController.getMeetingLinkWithShortLink)
+router.post("/paid", MeetingController.createPaidMeetinglink)
 
 // MiddleWare :
 router.use(auth.authenticate);
@@ -20,5 +21,7 @@ router.route("/")
     .get(MeetingController.getAllMeetings)
     .post(MeetingController.createMeetinglink)
 // .post(auth.restrictTo([roles.ADMIN, roles.SUPERADMIN, roles.TEACHER]), MeetingController.createMeetinglink)
+
+router.get("/paid", MeetingController.getAllPaidMeetings)
 
 module.exports = router;

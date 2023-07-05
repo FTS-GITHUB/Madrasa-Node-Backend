@@ -1,18 +1,51 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const bookingSchema = new mongoose.Schema({
-    title: {
-        type: String,
-        required: [true, "Booking Title is Required"]
-    },
-    detail: {
-        type: String,
-        required: [true, " Booking detail is Required"]
-    },
-},
-    {
-        timestamps: true,
-    })
+// Helpers :
+const RandomStrGen = require("../utils/uniqueStringGenrator")
 
-const bookingModel = mongoose.model('bookings', bookingSchema)
-module.exports = bookingModel;
+
+
+const BookingSchema = new mongoose.Schema({
+    studentId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "user",
+        default: null
+    },
+    firstName: String,
+    lastName: String,
+    email: String,
+    title: String,
+    link: String,
+    shortLink: String,
+    adminLink: String,
+    type: {
+        type: String,
+        enum: {
+            values: ["instantMeeting", "course"]
+        }
+    },
+    admin: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "user"
+    }
+}, { timestamps: true })
+
+BookingSchema.methods.createShortLink = async function () {
+    console.log("IN MIDDLEWARE");
+    let shortLink = ""
+    do {
+        shortLink = RandomStrGen(8);
+    } while (
+        await BookingModel.findOne({
+            shortLink: shortLink
+        })
+    );
+    this.shortLink = `${shortLink}`
+    // this.shortLink = `/api/meeting/public/${shortLink}`
+    console.log("IN MIDDLEWARE -----> ", this.shortLink);
+    return this.shortLink
+};
+
+const BookingModel = mongoose.model("BookingModel", BookingSchema)
+module.exports = BookingModel;
+

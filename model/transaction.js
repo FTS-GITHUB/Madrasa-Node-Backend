@@ -46,7 +46,7 @@ const transactionSchema = new mongoose.Schema({
     orderType: {
         type: String,
         enum: {
-            values: ["book", "tution"],
+            values: ["book", "tution" , 'meeting'],
             message: "Order Type must be book or tution"
         },
         default: "book",
