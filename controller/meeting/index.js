@@ -23,5 +23,6 @@ router.route("/")
 // .post(auth.restrictTo([roles.ADMIN, roles.SUPERADMIN, roles.TEACHER]), MeetingController.createMeetinglink)
 
 router.get("/paid", MeetingController.getAllPaidMeetings)
+router.patch("/paid/:id", MeetingController.startPaidMeeting)
 
 module.exports = router;
