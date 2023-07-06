@@ -24,6 +24,13 @@ const BookingSchema = new mongoose.Schema({
             values: ["instantMeeting", "course"]
         }
     },
+    status: {
+        type: String,
+        enum: {
+            values: ["pending", "completed", "failed"]
+        },
+        default:"pending"
+    },
     admin: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "user"
