@@ -9,7 +9,8 @@ const bycrypt = require("../../utils/bycrypt");
 const SendEmail = require("../../utils/emails/sendEmail");
 const crypto = require("crypto");
 const catchAsync = require("../../utils/catchAsync");
-const { STATUS_CODE, ERRORS, SUCCESS_MSG } = require("../../constants/index")
+const { STATUS_CODE, ERRORS, SUCCESS_MSG } = require("../../constants/index");
+const { GoogleClient } = require("../../utils/GoogleOthClient");
 
 
 
@@ -297,5 +298,37 @@ const resetPassword = catchAsync(async (req, res, next) => {
 
 })
 
+const googleLogin = catchAsync(async (req, res, next) => {
 
-module.exports = { login, validate, genrateEmailVerificationCode, changeEmail, verifyEmailCode, addPassword, genrateForgetEmailVerificationCode, resetPassword }
+    try {
+        let { token } = req.body;
+
+        const verifyGoogleToken = await GoogleClient.verifyIdToken({
+            idToken: token
+        })
+
+        let userData = verifyGoogleToken.getPayload()
+
+        if (userData) {
+            const findUser = await userModel.findOne({ email: userData?.email })
+            if (findUser) {
+                const token = jwt.createJWT(findUser);
+                if (!token) {
+                    return res.status(STATUS_CODE.NOT_FOUND).json({ message: ERRORS.INVALID.USER_NOT_FOUND });
+                }
+                findUser.token = token;
+                res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result: findUser });
+            } else {
+                res.status(STATUS_CODE.NOT_FOUND).json({ message: ERRORS.INVALID.USER_NOT_FOUND });
+            }
+        }
+
+    } catch (err) {
+        console.log("-------- ERROR ---------- ", err);
+        res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err });
+    }
+
+})
+
+
+module.exports = { login, validate, genrateEmailVerificationCode, changeEmail, verifyEmailCode, addPassword, genrateForgetEmailVerificationCode, resetPassword, googleLogin }
