@@ -1,4 +1,4 @@
-const ScheduleModel = require("../../model/ScheduleModel");
+const ScheduleModel = require("../../model/schedule");
 const catchAsync = require("../../utils/catchAsync");
 const { SUCCESS_MSG, ERRORS, STATUS_CODE, ROLES } = require("../../constants/index")
 

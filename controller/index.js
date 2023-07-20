@@ -12,6 +12,7 @@ const blog = require("./blog/index")
 const meeting = require("./meeting/index")
 const search = require("./search/index")
 const subscription = require("./subscription/index")
+const schedule = require("./schedule/index")
 
 
 
@@ -32,7 +33,8 @@ const controllers = {
     blog,
     meeting,
     search,
-    subscription
+    subscription,
+    schedule,
 }
 
 module.exports = controllers;
