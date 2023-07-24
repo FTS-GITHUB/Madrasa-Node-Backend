@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 
 
-const Availibility = new mongoose.Schema({
+const AvailibilitySchema = new mongoose.Schema({
     title : {type : String},
     start : {type : String},
     end : {type : String},
@@ -17,8 +17,8 @@ const Schedule = new mongoose.Schema({
         type : mongoose.Schema.Types.ObjectId,
         ref : "user"
     },
-    Availibility : Array,
-    // Availibility : Availibility,
+    // Availibility : Array,
+    Availibility : [AvailibilitySchema],
 })
 
 
