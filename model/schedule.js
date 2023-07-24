@@ -8,7 +8,6 @@ const Availibility = new mongoose.Schema({
     bookingId : {
         type : mongoose.Schema.Types.ObjectId,
         ref : "BookingModel",
-        default : null,
     },
 }, {_id : false})
 
@@ -18,7 +17,8 @@ const Schedule = new mongoose.Schema({
         type : mongoose.Schema.Types.ObjectId,
         ref : "user"
     },
-    Availibility : Availibility,
+    Availibility : Array,
+    // Availibility : Availibility,
 })
 
 

@@ -18,7 +18,6 @@ const schedule = require("./schedule/index")
 
 
 
-
 const controllers = {
     auth,
     admin,

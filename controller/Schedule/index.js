@@ -9,6 +9,7 @@ router.get("/public", ScheduleController.getPublicSchedule);
 router.use(auth.authenticate)
 
 
-router.post("/", ScheduleController.addSchedule);
+router.post("/add", ScheduleController.addSchedule);
+router.get("/teacher", ScheduleController.TeacherSchedule);
 
 module.exports = router;
