@@ -7,6 +7,8 @@ const subscriptionController = require('./subscription')
 // router.use(auth.authenticate)
 
 router.post("/",subscriptionController.emailSubscription)
+router.post("/sendEmail",subscriptionController.sendEmailToSubscribedUser)
+router.get("/all",subscriptionController.getAllSubscribedUser)
 
 
 module.exports = router;

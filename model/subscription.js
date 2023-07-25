@@ -9,6 +9,10 @@ const subscriptionSchema = new mongoose.Schema({
         required: [true, "Email is required"],
         validate: [validator.isEmail, "Invalid Email"],
     },
+    isSubscription: {
+        type: Boolean,
+        default: false,
+    },
 
 },
     {

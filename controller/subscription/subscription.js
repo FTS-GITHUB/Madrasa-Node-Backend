@@ -30,7 +30,7 @@ const emailSubscription = catchAsync(async (req, res, next) => {
       return;
     }
 
-    const newSubscription = new subscriptionModel({ email });
+    const newSubscription = new subscriptionModel({ email, isSubscription: true });
     await newSubscription.save();
 
     await SendEmail(
@@ -44,7 +44,7 @@ const emailSubscription = catchAsync(async (req, res, next) => {
 
     res
       .status(STATUS_CODE.OK)
-      .json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUBSCRIPTION });
+      .json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUBSCRIPTION, isSubscription: newSubscription.isSubscription });
   } catch (err) {
     console.log(err);
     res
@@ -53,4 +53,65 @@ const emailSubscription = catchAsync(async (req, res, next) => {
   }
 });
 
-module.exports = { emailSubscription };
+const getAllSubscribedUser = catchAsync(async (req, res) => {
+  try {
+    const data = await subscriptionModel.find({ isSubscription: true });
+
+    const email = data.map((user) => user.email);
+
+    res.status(STATUS_CODE.OK).json({message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, subscribedUsers: email  });
+  } catch (err) {
+      console.log(err);
+      res.status(STATUS_CODE.BAD_REQUEST).json({ statusCode: STATUS_CODE.BAD_REQUEST, err })
+  }
+})
+
+//Api to send email to all subscribed User
+const sendEmailToSubscribedUser = catchAsync(async (req, res, next) => {
+  try {
+    const { message, subscribedUsers } = req.body;
+
+    if (!message) {
+      res
+        .status(STATUS_CODE.BAD_REQUEST)
+        .json({ message: "Message is required" });
+      return;
+    }
+
+    if (!subscribedUsers || !Array.isArray(subscribedUsers)) {
+      res
+        .status(STATUS_CODE.BAD_REQUEST)
+        .json({ message: "Invalid or missing subscribedUsers array" });
+      return;
+    }
+
+    // Iterate through each subscribed user and send an email
+    for (const email of subscribedUsers) {
+      const isExist = await subscriptionModel.findOne({ email });
+
+      if (!isExist) {
+        res
+          .status(STATUS_CODE.NOT_FOUND)
+          .json({ message: `User ${email} is not subscribed` });
+        return;
+      }
+
+      await SendEmail({
+        email,
+        subject: "Subscription Confirmation",
+        code: message,
+      });
+    }
+
+    res
+      .status(STATUS_CODE.OK)
+      .json({ message: "Emails sent to all subscribed users" });
+  } catch (err) {
+    console.log(err);
+    res
+      .status(STATUS_CODE.SERVER_ERROR)
+      .json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err });
+  }
+});
+
+module.exports = { emailSubscription,getAllSubscribedUser,sendEmailToSubscribedUser };
