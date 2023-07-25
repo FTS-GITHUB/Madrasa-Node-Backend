@@ -84,8 +84,6 @@ const sendEmailToSubscribedUser = catchAsync(async (req, res, next) => {
         .json({ message: "Invalid or missing subscribedUsers array" });
       return;
     }
-
-    // Iterate through each subscribed user and send an email
     for (const email of subscribedUsers) {
       const isExist = await subscriptionModel.findOne({ email });
 
