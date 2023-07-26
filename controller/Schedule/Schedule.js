@@ -38,8 +38,11 @@ const TeacherSchedule = catchAsync(async (req, res) => {
 
 // This is the get All Public Schedule APi
 const getPublicSchedule = catchAsync(async (req, res) => {
+    const teacherID= req.body.teacherID
+    console.log("this is teacherID", teacherID)
+
     try {
-        const result = await ScheduleModel.find({})
+        const result = await ScheduleModel.findOne({teacher : teacherID})
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result })
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })

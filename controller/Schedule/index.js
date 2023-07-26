@@ -5,7 +5,7 @@ const ScheduleController = require("./schedule");
 
 
 
-router.get("/public", ScheduleController.getPublicSchedule);
+router.post("/public", ScheduleController.getPublicSchedule);
 router.use(auth.authenticate)
 
 
