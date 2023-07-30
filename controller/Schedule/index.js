@@ -6,6 +6,7 @@ const ScheduleController = require("./schedule");
 
 
 router.post("/public", ScheduleController.getPublicSchedule);
+router.post("/update", ScheduleController.updateSchedule)
 router.use(auth.authenticate)
 
 
