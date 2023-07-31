@@ -10,7 +10,7 @@ const TransactionModel = require("../../model/transaction")
 const STRIPE = require("../../utils/Stripe")
 // Helpers :
 const catchAsync = require("../../utils/catchAsync");
-const { STATUS_CODE, SUCCESS_MSG, ERRORS } = require("../../constants");
+const { STATUS_CODE, SUCCESS_MSG, ERRORS, ROLES } = require("../../constants");
 const MeetingURLGen = require("../../utils/zoomLinkgenrator");
 
 
@@ -68,7 +68,19 @@ const createMeetinglink = catchAsync(async (req, res, next) => {
 const getAllPaidMeetings = catchAsync(async (req, res, next) => {
     let currentuser = req.user;
     try {
-        const result = await BookingModel.find({ admin: currentuser?._id })
+        let result;
+        if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentuser.role.name)) {
+            result = await BookingModel.find({})
+        }
+        else if ([ROLES.TEACHER].includes(currentuser.role.name)) {
+            result = await BookingModel.find({ admin: currentuser?._id })
+        }
+        else if ([ROLES.STUDENT].includes(currentuser.role.name)) {
+            result = await BookingModel.find({ studentId: currentuser?._id })
+        }
+        else{
+            result = []
+        }
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result })
     } catch (err) {
         res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
@@ -76,19 +88,21 @@ const getAllPaidMeetings = catchAsync(async (req, res, next) => {
 })
 
 const createPaidMeetinglink = catchAsync(async (req, res, next) => {
+    const UserData = req.user
     try {
 
-        let { firstName, lastName, email, teacherID, cardDetails } = req.body;
+        let { firstName, email, teacherID, cardDetails, startDate } = req.body;
+        let lastName = ""
 
 
         let { cardNumber, expMonth, expYear, cvc } = cardDetails;
 
-        if (!cardNumber || !expMonth || !expYear || !cvc) {
-            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELDS_MISSING, fields: ["cardNumber", "expMonth", "expYear", "cvc"] })
-        }
+        // if (!cardNumber || !expMonth || !expYear || !cvc) {
+        //     return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELDS_MISSING, fields: ["cardNumber", "expMonth", "expYear", "cvc"] })
+        // }
 
         const TeacherData = await UserModel.findById(teacherID);
-        const UserData = await UserModel.findOne({ email: email })
+        // const UserData = await UserModel.findOne({ email: email })
 
         if (!TeacherData) {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND, error: "Teacher Not Found" })
@@ -143,6 +157,7 @@ const createPaidMeetinglink = catchAsync(async (req, res, next) => {
             title: `Instant Meeting with ${TeacherData?.firstName} ${TeacherData?.lastName}`,
             firstName,
             lastName,
+            startDate,
             email,
             admin: TeacherData?._id,
             type: "instantMeeting",
@@ -151,14 +166,14 @@ const createPaidMeetinglink = catchAsync(async (req, res, next) => {
         if (UserData) {
             MeetingData.studentId = UserData?._id
         }
-        
+
         await MeetingData.save()
-        
+
         let { adminLink, ...result } = MeetingData._doc;
-        if(result){
+        if (result) {
             result.invoice = Pay?.receipt_url
         }
-        
+
         res.status(STATUS_CODE.CREATED).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result })
 
     } catch (err) {
@@ -183,4 +198,4 @@ const startPaidMeeting = catchAsync(async (req, res, next) => {
     }
 })
 
-module.exports = { getAllMeetings, createMeetinglink, getMeetingLinkWithShortLink, createPaidMeetinglink, getAllPaidMeetings , startPaidMeeting };
+module.exports = { getAllMeetings, createMeetinglink, getMeetingLinkWithShortLink, createPaidMeetinglink, getAllPaidMeetings, startPaidMeeting };

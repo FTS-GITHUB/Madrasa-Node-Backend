@@ -15,6 +15,7 @@ const BookingSchema = new mongoose.Schema({
     lastName: String,
     email: String,
     title: String,
+    startDate : String,
     link: String,
     shortLink: String,
     adminLink: String,
@@ -52,6 +53,10 @@ BookingSchema.methods.createShortLink = async function () {
     console.log("IN MIDDLEWARE -----> ", this.shortLink);
     return this.shortLink
 };
+BookingSchema.pre("find", function (next) {
+    this.populate("admin")
+    next();
+})
 
 const BookingModel = mongoose.model("BookingModel", BookingSchema)
 module.exports = BookingModel;
