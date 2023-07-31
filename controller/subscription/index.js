@@ -9,6 +9,7 @@ const subscriptionController = require('./subscription')
 router.post("/",subscriptionController.emailSubscription)
 router.post("/sendEmail",subscriptionController.sendEmailToSubscribedUser)
 router.get("/all",subscriptionController.getAllSubscribedUser)
+router.delete("/:id",subscriptionController.deleteSubscribedUser)
 
 
 module.exports = router;

@@ -57,9 +57,13 @@ const getAllSubscribedUser = catchAsync(async (req, res) => {
   try {
     const data = await subscriptionModel.find({ isSubscription: true });
 
-    const email = data.map((user) => user.email);
+    // const email = data.map((user) => user.email);
+    const subscribedUsers = data.map((user) => ({
+      email: user.email,
+      userId: user._id 
+    }));
 
-    res.status(STATUS_CODE.OK).json({message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, subscribedUsers: email  });
+    res.status(STATUS_CODE.OK).json({message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, subscribedUsers: subscribedUsers  });
   } catch (err) {
       console.log(err);
       res.status(STATUS_CODE.BAD_REQUEST).json({ statusCode: STATUS_CODE.BAD_REQUEST, err })
@@ -70,6 +74,7 @@ const getAllSubscribedUser = catchAsync(async (req, res) => {
 const sendEmailToSubscribedUser = catchAsync(async (req, res, next) => {
   try {
     const { message, subscribedUsers } = req.body;
+    
 
     if (!message) {
       res
@@ -84,7 +89,9 @@ const sendEmailToSubscribedUser = catchAsync(async (req, res, next) => {
         .json({ message: "Invalid or missing subscribedUsers array" });
       return;
     }
-    for (const email of subscribedUsers) {
+    const emailAddresses = subscribedUsers.map((user) => user.email);
+    console.log(emailAddresses,"emailAddresses")
+    for (const email of emailAddresses) {
       const isExist = await subscriptionModel.findOne({ email });
 
       if (!isExist) {
@@ -112,4 +119,24 @@ const sendEmailToSubscribedUser = catchAsync(async (req, res, next) => {
   }
 });
 
-module.exports = { emailSubscription,getAllSubscribedUser,sendEmailToSubscribedUser };
+
+const deleteSubscribedUser = catchAsync(async (req, res, next) => {
+    try {
+        let { id } = req.params;
+        if (!id) {
+            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELDS_MISSING, fields: ["id"] })
+        }
+        const findSubcribedUser = await subscriptionModel.findById(id)
+        if (!findSubcribedUser) {
+            return res.status(STATUS_CODE.NOT_FOUND).json({ message: ERRORS.INVALID.NOT_FOUND })
+        }
+        if (findSubcribedUser.notDeleteAble) {
+            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: " Not DeleteAble" })
+        }
+        const result = await subscriptionModel.findByIdAndDelete(id)
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result })
+    } catch (err) {
+        res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
+    }
+})
+module.exports = { emailSubscription,getAllSubscribedUser,sendEmailToSubscribedUser,deleteSubscribedUser };
