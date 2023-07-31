@@ -70,6 +70,8 @@ const userSchema = new mongoose.Schema({
         type: Array,
     },
     rate: Number,
+    currency: { type: String },
+    serviceType: { type: String },
     password: {
         type: String,
         minlength: [8, "Password minimum length must be 8 characters"],
