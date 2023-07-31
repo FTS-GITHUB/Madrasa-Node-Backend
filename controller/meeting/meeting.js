@@ -151,11 +151,14 @@ const createPaidMeetinglink = catchAsync(async (req, res, next) => {
         if (UserData) {
             MeetingData.studentId = UserData?._id
         }
-
+        
         await MeetingData.save()
-
+        
         let { adminLink, ...result } = MeetingData._doc;
-
+        if(result){
+            result.invoice = Pay?.receipt_url
+        }
+        
         res.status(STATUS_CODE.CREATED).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result })
 
     } catch (err) {
