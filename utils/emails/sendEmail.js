@@ -22,7 +22,7 @@ const SendEmail = async ({ email, subject, code }, next) => {
         });
 
         mailDetails = {
-            from: '"Junaid from Madrasa IO - Testing" <admin@madrasa.alphatechlogix.com>',
+            from: '"Team from Madrasa IO - Testing" <admin@madrasa.alphatechlogix.com>',
             to: email,
             subject: subject,
             html: VerifyEmailTemplate(code)
