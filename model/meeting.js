@@ -32,6 +32,7 @@ MeetingSchema.methods.createShortLink = async function () {
     return this.shortLink
 };
 
+
 const MeetingModel = mongoose.model("MeetingModel", MeetingSchema)
 module.exports = MeetingModel;
 

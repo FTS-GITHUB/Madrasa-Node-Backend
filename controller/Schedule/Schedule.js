@@ -39,7 +39,6 @@ const TeacherSchedule = catchAsync(async (req, res) => {
 // This is the get All Public Schedule APi
 const getPublicSchedule = catchAsync(async (req, res) => {
     const teacherID = req.body.teacherID
-    console.log("this is teacherID", teacherID)
 
     try {
         const result = await ScheduleModel.findOne({ teacher: teacherID })
@@ -57,7 +56,6 @@ const updateSchedule = catchAsync(async (req, res) => {
         if (findOne) {
             let modifiedAvailibility = findOne.Availibility.map((data) => {
                 if (new Date(data.start).getTime() == new Date(studentData?.eventData?.start).getTime()) {
-                    console.log("kdsahfkashdjkf", studentData?.eventData)
                     return studentData?.eventData;
                 }
                 else {
@@ -67,10 +65,7 @@ const updateSchedule = catchAsync(async (req, res) => {
             await Promise.all(modifiedAvailibility)
             findOne.Availibility=modifiedAvailibility;
             await findOne.save()
-        }
-        
-        
-        // console.log("this is the result ", result)
+        }        
         return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result: findOne })
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
