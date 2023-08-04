@@ -91,7 +91,7 @@ const createPaidMeetinglink = catchAsync(async (req, res, next) => {
     const UserData = req.user
     try {
 
-        let { firstName, email, teacherID, cardDetails, startDate } = req.body;
+        let { firstName, email, teacherID, cardDetails, startDate, thoughts } = req.body;
         let lastName = ""
 
 
@@ -158,6 +158,7 @@ const createPaidMeetinglink = catchAsync(async (req, res, next) => {
             firstName,
             lastName,
             startDate,
+            thoughts,
             email,
             admin: TeacherData?._id,
             type: "instantMeeting",
