@@ -107,8 +107,11 @@ const updateBookById = catchAsync(async (req, res) => {
         if (data.isImgDel == "true") {
             data.image = {};
         } else {
-            if (req.file) {
-                data.image = await uploadFile(req.file, data?.image?.url || null);
+            if (req?.files?.cover) {
+                data.image = await uploadFile(req?.files?.cover[0], data?.image?.url || null);
+            }
+            if (req?.files?.file) {
+                data.file = await uploadFile(req?.files?.file[0], null);
             }
         }
         data.status = "pending";
