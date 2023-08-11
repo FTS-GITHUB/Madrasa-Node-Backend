@@ -39,6 +39,12 @@ const userSchema = new mongoose.Schema({
     phone: {
         type: String,
     },
+    timezone : {
+        type : String,
+    },
+    age : {
+        type : String,
+    },
     address: {
         type: String,
     },
