@@ -13,6 +13,7 @@ const meeting = require("./meeting/index")
 const search = require("./search/index")
 const subscription = require("./subscription/index")
 const schedule = require("./schedule/index")
+const event = require("./events/index")
 
 
 
@@ -34,6 +35,7 @@ const controllers = {
     search,
     subscription,
     schedule,
+    event,
 }
 
 module.exports = controllers;
