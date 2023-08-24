@@ -15,5 +15,5 @@ module.exports = {
   SEARCH:'/search',
   SUBSCRIPTION:`/Subscribe`,
   SCHEDULE : '/schedule',
-  EVENTS : '/events',
+  EVENTS : '/event',
 };
