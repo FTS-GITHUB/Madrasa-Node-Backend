@@ -17,13 +17,14 @@ const addEvent = catchAsync(async (req, res) => {
     data.auther = currentUser?._id
 
     try {
-        if (!data.title || data.title == "" || !data.detail || data.detail == "" || !data.time) {
+        if (!data.title || data.title == "" || !data.description || data.description == "") {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELD })
         }
-        const newData = new blog(data)
+        const newData = new EventModel(data)
         await newData.save()
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.CREATED, result: newData })
     } catch (err) {
+        console.log(err);
         res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 
