@@ -19,5 +19,6 @@ router.use(routes.SEARCH, controllers.search)
 router.use(routes.SUBSCRIPTION, controllers.subscription)
 router.use(routes.SCHEDULE, controllers.schedule)
 router.use(routes.EVENTS, controllers.event)
+router.use(routes.CONTACT, controllers.contact)
 
 module.exports = router;
