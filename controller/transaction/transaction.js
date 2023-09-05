@@ -10,6 +10,7 @@ const STRIPE = require("../../utils/Stripe")
 // Helpers :
 const catchAsync = require("../../utils/catchAsync");
 const { SUCCESS_MSG, ERRORS, STATUS_CODE, ROLES } = require("../../constants/index");
+const mongoose = require("mongoose")
 
 
 
@@ -42,6 +43,7 @@ const addTransaction = catchAsync(async (req, res) => {
                 req.body.title = req.body.title.concat(index >= 1 ? ` | ${book.title.slice(0, 6)}` : book.title.slice(0, 6));
             })
             await Promise.all(process)
+            req.body.sellerId = allSourcesData.map(source => source?.auther?._id)
         }
         if (isNaN(req.body.orderPrice)) {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, details: "Source Price Issue" })
@@ -162,6 +164,10 @@ const getAllTransaction = catchAsync(async (req, res) => {
             result = await TransactionModel.find({});
         } else {
             result = await TransactionModel.find({ buyerId: currentUser._id });
+            if (!result || !result.length >= 1) {
+                let sid = new mongoose.Types.ObjectId(currentUser?._id)
+                result = await TransactionModel.find({ sellerId: { $in: [sid] } });
+            }
         }
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result })
     } catch (err) {
