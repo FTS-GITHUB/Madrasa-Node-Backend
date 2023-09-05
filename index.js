@@ -32,4 +32,7 @@ const io = socketio(Server, {
    },
 });
 
-io.on("connection", onConnection);
+
+io.on("connection", (socket) => {
+   onConnection(socket, io)
+});

@@ -69,16 +69,16 @@ const getAllPaidMeetings = catchAsync(async (req, res, next) => {
     let currentuser = req.user;
     try {
         let result;
-        if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentuser.role.name)) {
+        if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentuser?.role?.name) || currentuser?.isSuperAdmin) {
             result = await BookingModel.find({})
         }
-        else if ([ROLES.TEACHER].includes(currentuser.role.name)) {
+        else if ([ROLES.TEACHER].includes(currentuser?.role?.name)) {
             result = await BookingModel.find({ admin: currentuser?._id })
         }
-        else if ([ROLES.STUDENT].includes(currentuser.role.name)) {
+        else if ([ROLES.STUDENT].includes(currentuser?.role?.name)) {
             result = await BookingModel.find({ studentId: currentuser?._id })
         }
-        else{
+        else {
             result = []
         }
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result })

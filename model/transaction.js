@@ -17,6 +17,13 @@ const transactionSchema = new mongoose.Schema({
         ref: "user",
         default: null
     },
+    sellerId: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "user",
+            default: null
+        }
+    ],
     title: String,
     orderPrice: {
         type: String,
@@ -46,7 +53,7 @@ const transactionSchema = new mongoose.Schema({
     orderType: {
         type: String,
         enum: {
-            values: ["book", "tution" , 'meeting'],
+            values: ["book", "tution", 'meeting'],
             message: "Order Type must be book or tution"
         },
         default: "book",
