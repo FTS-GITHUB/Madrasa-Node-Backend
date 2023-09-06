@@ -1,9 +1,14 @@
 const nodemailer = require('nodemailer');
+const SES = require("aws-sdk/clients/ses")
 const VerifyEmailTemplate = require("./templates/VerifyEmail");
 // const VerifyEmailTemplate = require("./templates/VerifyEmailTEMP");
 require('dotenv').config();
 
-const SendEmail = async ({ email, subject, code }, next) => {
+
+
+
+
+const SendSMTPEmail = async ({ email, subject, code }, next) => {
     try {
         mailTransporter = nodemailer.createTransport({
             host: "madrasa.alphatechlogix.com",
@@ -36,4 +41,47 @@ const SendEmail = async ({ email, subject, code }, next) => {
 
 }
 
-module.exports = SendEmail;
+const bucketName = process.env.AWS_BUCKET_NAME;
+const region = process.env.AWS_BUCKET_REGION;
+const accessKeyId = process.env.AWS_ACCESS_KEY;
+const secretAccessKey = process.env.AWS_SECRET_KEY;
+// const SendAwsSESEmail = async ({ email, subject, code }, next) => {
+const sendEmail = async ({ email, subject, code }, next) => {
+
+    let ses = new SES({
+        region: region,
+        accessKeyId: accessKeyId,
+        secretAccessKey: secretAccessKey
+    })
+
+    try {
+
+        let params = { // SendEmailRequest
+            Source: "info@madrasa.io", // required
+            Destination: { // Destination
+                ToAddresses: [email],
+            },
+            Message: { // Message
+                Subject: { // Content
+                    Data: subject, // required
+                    Charset: "UTF-8",
+                },
+                Body: { // Body
+                    Html: {
+                        Data: VerifyEmailTemplate(code), // required
+                        Charset: "UTF-8",
+                    },
+                },
+            },
+        };
+
+        let res = await ses.sendEmail(params).promise();
+        return res
+    } catch (err) {
+        next(err)
+    }
+
+}
+
+// module.exports = SendSMTPEmail;
+module.exports = sendEmail;
