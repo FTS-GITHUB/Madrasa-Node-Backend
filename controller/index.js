@@ -15,6 +15,7 @@ const subscription = require("./subscription/index")
 const schedule = require("./schedule/index")
 const event = require("./events/index")
 const contact = require("./contact/index")
+const notification = require("./notification/index")
 
 
 
@@ -38,6 +39,7 @@ const controllers = {
     schedule,
     event,
     contact,
+    notification
 }
 
 module.exports = controllers;
