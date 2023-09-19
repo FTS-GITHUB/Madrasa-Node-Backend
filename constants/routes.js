@@ -17,4 +17,5 @@ module.exports = {
   SCHEDULE : '/schedule',
   EVENTS : '/event',
   CONTACT : '/contact',
+  NOTIFICATION : '/notification',
 };
