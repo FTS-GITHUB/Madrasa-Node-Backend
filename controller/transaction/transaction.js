@@ -4,13 +4,15 @@ const express = require("express");
 const UserModel = require("../../model/user");
 const TransactionModel = require("../../model/transaction");
 const BookModel = require("../../model/book")
+const NotificationModel = require("../../model/notifications");
 
 // STRIPE :
 const STRIPE = require("../../utils/Stripe")
 // Helpers :
 const catchAsync = require("../../utils/catchAsync");
 const { SUCCESS_MSG, ERRORS, STATUS_CODE, ROLES } = require("../../constants/index");
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
+const sendEmail = require("../../utils/emails/sendEmail");
 
 
 
@@ -101,7 +103,7 @@ const addFreeTransaction = catchAsync(async (req, res) => {
 })
 
 // This is Used to add Paymentds like Cards | BanckAccounts Etc , Post API
-const addPaymentMethod = catchAsync(async (req, res) => {
+const addPaymentMethod = catchAsync(async (req, res, next) => {
     // As In This Case the user maybe a Register User or unregister User :
     let { cardNumber, expMonth, expYear, cvc, bookingId } = req.body;
     let UserData;
@@ -111,7 +113,7 @@ const addPaymentMethod = catchAsync(async (req, res) => {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELDS_MISSING, fields: ["cardNumber", "expMonth", "expYear", "cvc", "bookingId"] })
         }
 
-        let TransactionData = await TransactionModel.findById(bookingId)
+        let TransactionData = await TransactionModel.findById(bookingId).populate("buyerId");
         if (!TransactionData) {
             return res.status(STATUS_CODE.NOT_FOUND).json({ message: "Booking / Transaction Not Found" })
         }
@@ -148,7 +150,20 @@ const addPaymentMethod = catchAsync(async (req, res) => {
         TransactionData.invoice = Pay?.receipt_url;
         await TransactionData?.save();
 
-        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result: TransactionData })
+        let Notification = new NotificationModel({
+            type: TransactionData.orderType,
+            from: UserData?._id,
+            to: TransactionData.sellerId,
+            source: TransactionData.orderType == "book" ? TransactionData?._id : TransactionData.sources[0],
+            title: `${UserData?.firstName} make payment for ${TransactionData?.orderType}`
+        })
+        await Notification.save();
+
+        if (TransactionData.orderType == "book") {
+            sendEmail({ email: UserData?.email, subject: "Your Book Link", code: `<a href="https://madrasa-aws-s3-bucket.s3.eu-north-1.amazonaws.com/1256153b-4975-4e13-8d6f-91ddfc3968a8.pdf"> Download Book Here </a>` }, next)
+        }
+
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result: TransactionData, notificationId: Notification._id })
     } catch (err) {
         res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
