@@ -11,16 +11,20 @@ const notificationSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "user"
     },
-    to: {
+    to: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "user"
-    },
+    }],
     type: {
         type: String,
         enum: {
-            values: ["books", "meeting"],
-            message: "Types must be books OR meeting",
+            values: ["book", "meeting"],
+            message: "Types must be book OR meeting",
         },
+    },
+    read: {
+        type: Boolean,
+        default: false
     }
 },
     {

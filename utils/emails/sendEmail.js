@@ -78,6 +78,7 @@ const sendEmail = async ({ email, subject, code }, next) => {
         let res = await ses.sendEmail(params).promise();
         return res
     } catch (err) {
+        console.log(err);
         next(err)
     }
 
