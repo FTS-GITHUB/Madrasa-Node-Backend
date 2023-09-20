@@ -17,6 +17,6 @@ const router = express();
 router.use(auth.authenticate);
 
 router.get("/", contactController.getAllNotifications);
-
+router.post("/read", contactController.readNotification);
 
 module.exports = router;
