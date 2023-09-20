@@ -23,5 +23,17 @@ const getAllNotifications = catchAsync(async (req, res, next) => {
     }
 })
 
+const readNotification = catchAsync(async (req, res, next) => {
+    let CurrentUser = req.user;
+    try {
+        let { notificationId } = req.body;
+        const result = await NotificationModel.findByIdAndUpdate(notificationId, { $set: { read: true } }, { new: true })
+        return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result })
+    } catch (err) {
+        console.log(err);
+        res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
+    }
+})
 
-module.exports = { getAllNotifications };
+
+module.exports = { getAllNotifications, readNotification };
