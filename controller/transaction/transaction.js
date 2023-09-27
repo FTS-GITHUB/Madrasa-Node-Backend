@@ -51,8 +51,8 @@ const addTransaction = catchAsync(async (req, res) => {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, details: "Source Price Issue" })
         }
 
-        // Charges == 5% of OrderPrice
-        req.body.charges = req.body.orderPrice / 5
+        // Charges == % of OrderPrice
+        req.body.charges = req.body.orderPrice * (5/100)
         req.body.balance = req.body.orderPrice + req.body.charges;
 
         let result = await TransactionModel.create(req.body)
@@ -170,6 +170,56 @@ const addPaymentMethod = catchAsync(async (req, res, next) => {
 
 })
 
+const createCustomer = catchAsync(async (req, res) =>{
+    const {name , email} = req.body
+
+    try{
+        const customer = await STRIPE.customers.create({
+            name : name,
+            email : email,
+            description : "This Account is Under the Madrasa.io"
+        })
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result: customer })
+    } catch(err){
+        console.log("this is the err", err)
+        return res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
+    }
+})
+
+const customerGet = catchAsync(async (req, res)=>{
+    const {customerId} = req.body
+    try {
+        const customer = await STRIPE.customers.retrieve(customerId)
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result: customer })
+    } catch(err){
+        console.log("this is the error", err)
+        return res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
+    }
+})
+
+const customerUpdate = catchAsync(async(req, res)=>{
+    const updateData = req.body
+    try{
+        const updateCustomer = await STRIPE.customers.update(updateData?.id, {name:updateData?.name, email : updateData?.email})
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result: updateCustomer })
+    } catch (err){
+        console.log("this is the error", err)
+        return res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
+    }
+})
+
+const getAllCustomers = catchAsync(async(req, res)=>{
+    try{
+        const getCustomers = await STRIPE.customers.list({})
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result: getCustomers })
+    } catch (err){
+        console.log("this is the error", err)
+        return res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
+    }
+
+})
+
+
 // This is the Transaction Get API
 const getAllTransaction = catchAsync(async (req, res) => {
     try {
@@ -273,4 +323,4 @@ const deleteTransactionById = catchAsync(async (req, res) => {
 })
 
 
-module.exports = { addPaymentMethod, addTransaction, getAllTransaction, getTransactionById, reviewTransaction, updateTransactionById, deleteTransactionById, addFreeTransaction };
+module.exports = { addPaymentMethod, addTransaction, getAllTransaction, getTransactionById, reviewTransaction, updateTransactionById, deleteTransactionById, addFreeTransaction , createCustomer, customerGet, customerUpdate, getAllCustomers };

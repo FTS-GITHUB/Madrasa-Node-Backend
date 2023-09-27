@@ -107,43 +107,44 @@ const createPaidMeetinglink = catchAsync(async (req, res, next) => {
         if (!TeacherData) {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND, error: "Teacher Not Found" })
         }
-        let MeetingBalance = ((Number(TeacherData?.rate || 6) / 10) + Number(TeacherData?.rate || 6)).toFixed(1)
-
-        let paymentMethod = await STRIPE.tokens.create({
-            card: {
-                number: '4242424242424242', // Card number
-                exp_month: 12, // Expiration month (2-digit format)
-                exp_year: 2024, // Expiration year (4-digit format)
-                cvc: '123', // CVC/CVV security code
-            },
-        });
-        if (!paymentMethod.id) {
-            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: "Error While Adding Card" })
-        }
-        let Pay = await STRIPE.charges.create({
-            amount: (MeetingBalance * 100).toFixed(0),
-            currency: 'usd',
-            source: paymentMethod?.id,
-            metadata: {
-                firstName,
-                lastName,
-                email
-            },
-        });
-        if (!Pay?.status == "succeeded") {
-            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: "Transaction Failed" })
+        let MeetingBalance = ((Number(TeacherData?.rate || 0) / 10) + Number(TeacherData?.rate || 0)).toFixed(1)
+        if (MeetingBalance >= 1) {
+            let paymentMethod = await STRIPE.tokens.create({
+                card: {
+                    number: '4242424242424242', // Card number
+                    exp_month: 12, // Expiration month (2-digit format)
+                    exp_year: 2024, // Expiration year (4-digit format)
+                    cvc: '123', // CVC/CVV security code
+                },
+            });
+            if (!paymentMethod.id) {
+                return res.status(STATUS_CODE.BAD_REQUEST).json({ message: "Error While Adding Card" })
+            }
+            let Pay = await STRIPE.charges.create({
+                amount: (MeetingBalance * 100).toFixed(0),
+                currency: 'usd',
+                source: paymentMethod?.id,
+                metadata: {
+                    firstName,
+                    lastName,
+                    email
+                },
+            });
+            if (!Pay?.status == "succeeded") {
+                return res.status(STATUS_CODE.BAD_REQUEST).json({ message: "Transaction Failed" })
+            }
         }
 
         let TransactionData = new TransactionModel({
             title: `Instant Meeting with ${TeacherData?.firstName} ${TeacherData?.lastName}`,
-            orderPrice: TeacherData?.rate || 6,
+            orderPrice: TeacherData?.rate || 0,
             status: "paid",
             transactionType: "full",
             orderType: "meeting",
             // 5% of charges Round to one decimal
             balance: MeetingBalance,
-            charges: (Number(TeacherData?.rate || 6) / 10).toFixed(1),
-            invoice: Pay?.receipt_url
+            charges: (Number(TeacherData?.rate || 0) / 10).toFixed(1),
+            invoice: MeetingBalance >= 1 ? Pay?.receipt_url : "Free"
         })
         if (UserData) {
             TransactionData.buyerId = UserData?._id
@@ -172,7 +173,7 @@ const createPaidMeetinglink = catchAsync(async (req, res, next) => {
 
         let { adminLink, ...result } = MeetingData._doc;
         if (result) {
-            result.invoice = Pay?.receipt_url
+            result.invoice = MeetingBalance >= 1 ? Pay?.receipt_url : "Free"
         }
 
         res.status(STATUS_CODE.CREATED).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result })
