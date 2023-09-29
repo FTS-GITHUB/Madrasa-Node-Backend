@@ -15,7 +15,7 @@ const BookingSchema = new mongoose.Schema({
     lastName: String,
     email: String,
     title: String,
-    thoughts: String,
+    // thoughts: String,
     startDate : String,
     link: String,
     shortLink: String,

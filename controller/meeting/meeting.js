@@ -159,7 +159,7 @@ const createPaidMeetinglink = catchAsync(async (req, res, next) => {
             firstName,
             lastName,
             startDate,
-            thoughts,
+            // thoughts,
             email,
             admin: TeacherData?._id,
             type: "instantMeeting",
