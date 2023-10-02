@@ -13,6 +13,7 @@ const catchAsync = require("../../utils/catchAsync");
 const { SUCCESS_MSG, ERRORS, STATUS_CODE, ROLES } = require("../../constants/index");
 const mongoose = require("mongoose");
 const sendEmail = require("../../utils/emails/sendEmail");
+const commissionModel = require("../../model/commission");
 
 
 
@@ -52,7 +53,10 @@ const addTransaction = catchAsync(async (req, res) => {
         }
 
         // Charges == % of OrderPrice
-        req.body.charges = req.body.orderPrice * (5/100)
+        // Commission Dynamically handle
+        let CommissionBook = await commissionModel.find({}) 
+
+        req.body.charges = req.body.orderPrice * (CommissionBook[0]?.bookCommission/100)
         req.body.balance = req.body.orderPrice + req.body.charges;
 
         let result = await TransactionModel.create(req.body)

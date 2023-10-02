@@ -12,6 +12,7 @@ const STRIPE = require("../../utils/Stripe")
 const catchAsync = require("../../utils/catchAsync");
 const { STATUS_CODE, SUCCESS_MSG, ERRORS, ROLES } = require("../../constants");
 const MeetingURLGen = require("../../utils/zoomLinkgenrator");
+const commissionModel = require("../../model/commission");
 
 
 
@@ -104,10 +105,20 @@ const createPaidMeetinglink = catchAsync(async (req, res, next) => {
         const TeacherData = await UserModel.findById(teacherID);
         // const UserData = await UserModel.findOne({ email: email })
 
+
+        // Set Commission Percentage of Meeting
+        let Commission = await commissionModel.find({})
+        let meetingCommission = Commission[0]?.meetingCommission
+        console.log("ythis is the meeting commission", meetingCommission)
+
         if (!TeacherData) {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND, error: "Teacher Not Found" })
         }
-        let MeetingBalance = ((Number(TeacherData?.rate || 0) / 10) + Number(TeacherData?.rate || 0)).toFixed(1)
+        let Balance = (Number((TeacherData?.rate || 0) * (meetingCommission / 100))).toFixed(1)
+        let MeetingBalance = Number(TeacherData?.rate) + Number(Balance)
+        console.log("ths is the meeting balance", MeetingBalance)
+
+        let Pay;
         if (MeetingBalance >= 1) {
             let paymentMethod = await STRIPE.tokens.create({
                 card: {
@@ -120,7 +131,7 @@ const createPaidMeetinglink = catchAsync(async (req, res, next) => {
             if (!paymentMethod.id) {
                 return res.status(STATUS_CODE.BAD_REQUEST).json({ message: "Error While Adding Card" })
             }
-            let Pay = await STRIPE.charges.create({
+            Pay = await STRIPE.charges.create({
                 amount: (MeetingBalance * 100).toFixed(0),
                 currency: 'usd',
                 source: paymentMethod?.id,
@@ -137,15 +148,17 @@ const createPaidMeetinglink = catchAsync(async (req, res, next) => {
 
         let TransactionData = new TransactionModel({
             title: `Instant Meeting with ${TeacherData?.firstName} ${TeacherData?.lastName}`,
-            orderPrice: TeacherData?.rate || 0,
+            orderPrice: TeacherData?.rate,
             status: "paid",
             transactionType: "full",
             orderType: "meeting",
             // 5% of charges Round to one decimal
             balance: MeetingBalance,
-            charges: (Number(TeacherData?.rate || 0) / 10).toFixed(1),
-            invoice: MeetingBalance >= 1 ? Pay?.receipt_url : "Free"
+            charges: (Number(TeacherData?.rate) * (meetingCommission / 100)).toFixed(1),
+            invoice: Pay ? Pay?.receipt_url : "Free"
         })
+        console.log("ths is the charges", Number(TeacherData?.rate) * (meetingCommission / 100))
+
         if (UserData) {
             TransactionData.buyerId = UserData?._id
         }
