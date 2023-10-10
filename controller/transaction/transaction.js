@@ -54,9 +54,10 @@ const addTransaction = catchAsync(async (req, res) => {
 
         // Charges == % of OrderPrice
         // Commission Dynamically handle
-        let CommissionBook = await commissionModel.find({}) 
+        let CommissionBook = await commissionModel.findOne({serviceName:"Book"}) 
+        console.log("this is the commission book", CommissionBook)
 
-        req.body.charges = req.body.orderPrice * (CommissionBook[0]?.bookCommission/100)
+        req.body.charges = req.body.orderPrice * (CommissionBook?.serviceCommission/100)
         req.body.balance = req.body.orderPrice + req.body.charges;
 
         let result = await TransactionModel.create(req.body)
