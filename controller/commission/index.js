@@ -12,6 +12,8 @@ const router = express();
 
 router.post("/add", commisionController.setCommission)
 router.get("/get", commisionController.getCommission);
+router.put("/update/:id", commisionController.updateCommission)
+router.delete("/delete/:id", commisionController.deleteCommission)
 
 
 

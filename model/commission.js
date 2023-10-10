@@ -2,10 +2,10 @@ const mongoose = require('mongoose');
 
 
 const commisionSchema = new mongoose.Schema({
-    bookCommission : {
-        type : Number,
+    serviceName : {
+        type : String,
     },
-    meetingCommission : {
+    serviceCommission : {
         type : Number,
     }
 
