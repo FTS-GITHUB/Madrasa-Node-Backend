@@ -46,7 +46,8 @@ const updateCommission = catchAsync(async (req, res) => {
     let commissionData = req.body
     let commissionId = req.params.id;
     try {
-        let result = await commissionModel.findOneAndUpdate(commissionId, commissionData, { new: true })
+        let result = await commissionModel.findOneAndUpdate({_id:commissionId}, commissionData, { new: true })
+        console.log("this is the result", result)
         return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result })
     } catch (error) {
         return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, error })

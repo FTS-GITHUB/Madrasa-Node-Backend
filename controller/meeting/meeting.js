@@ -107,8 +107,8 @@ const createPaidMeetinglink = catchAsync(async (req, res, next) => {
 
 
         // Set Commission Percentage of Meeting
-        let Commission = await commissionModel.find({})
-        let meetingCommission = Commission[0]?.meetingCommission
+        let Commission = await commissionModel.findOne({serviceName:"Meeting"})
+        let meetingCommission = Commission?.serviceCommission
         console.log("ythis is the meeting commission", meetingCommission)
 
         if (!TeacherData) {
