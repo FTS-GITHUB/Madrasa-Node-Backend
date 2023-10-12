@@ -7,7 +7,7 @@ const BookModel = require("../../model/book")
 const NotificationModel = require("../../model/notifications");
 
 // STRIPE :
-const STRIPE = require("../../utils/Stripe")
+const {STRIPE} = require("../../utils/Stripe")
 // Helpers :
 const catchAsync = require("../../utils/catchAsync");
 const { SUCCESS_MSG, ERRORS, STATUS_CODE, ROLES } = require("../../constants/index");

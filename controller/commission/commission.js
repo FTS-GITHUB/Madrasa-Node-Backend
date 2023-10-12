@@ -46,7 +46,7 @@ const updateCommission = catchAsync(async (req, res) => {
     let commissionData = req.body
     let commissionId = req.params.id;
     try {
-        let result = await commissionModel.findOneAndUpdate({_id:commissionId}, commissionData, { new: true })
+        let result = await commissionModel.findOneAndUpdate({ _id: commissionId }, commissionData, { new: true })
         console.log("this is the result", result)
         return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result })
     } catch (error) {
@@ -55,15 +55,15 @@ const updateCommission = catchAsync(async (req, res) => {
 })
 
 
-const deleteCommission = catchAsync(async(req, res)=>{
-    try{
+const deleteCommission = catchAsync(async (req, res) => {
+    try {
         let result = await commissionModel.findOneAndDelete(req.params.id)
-        return res.status(STATUS_CODE.OK).json({message:SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS})
-    } catch (error){
-        return res.status(STATUS_CODE.BAD_REQUEST).json({message:ERRORS.PROGRAMMING.SOME_ERROR.error})
+        return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS })
+    } catch (error) {
+        return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR.error })
     }
 })
 
 
 
-module.exports = { setCommission,getCommission ,updateCommission,deleteCommission }
+module.exports = { setCommission, getCommission, updateCommission, deleteCommission }
