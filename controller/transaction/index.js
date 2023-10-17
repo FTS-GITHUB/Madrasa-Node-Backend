@@ -13,6 +13,7 @@ router.post('/createAccount', transactionController.createCustomer)
 router.post('/getCustomer', transactionController.customerGet)
 router.get('/getAllCustomer', transactionController.getAllCustomers)
 router.put('/updateCustomer', transactionController.customerUpdate)
+router.post('/addBalance', transactionController.addBalance)
 
 router.use(auth.authenticate)
 
