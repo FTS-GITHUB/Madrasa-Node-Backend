@@ -173,13 +173,13 @@ const addPaymentMethod = catchAsync(async (req, res, next) => {
         console.log("fskjfl", err)
         res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
-
 })
 
 const addBalance = catchAsync(async (req, res) => {
     const { customerId, amount, currency } = req.body
     try {
-        const result = await STRIPE.customers.createBalanceTransaction(customerId,
+        const result = await STRIPE.customers.createBalanceTransaction(
+            customerId,
             {
                 amount: amount,
                 currency: currency
