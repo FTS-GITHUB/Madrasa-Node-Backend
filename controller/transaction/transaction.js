@@ -7,7 +7,7 @@ const BookModel = require("../../model/book")
 const NotificationModel = require("../../model/notifications");
 
 // STRIPE :
-const STRIPE = require("../../utils/Stripe")
+const { STRIPE } = require("../../utils/Stripe")
 // Helpers :
 const catchAsync = require("../../utils/catchAsync");
 const { SUCCESS_MSG, ERRORS, STATUS_CODE, ROLES } = require("../../constants/index");
@@ -54,10 +54,10 @@ const addTransaction = catchAsync(async (req, res) => {
 
         // Charges == % of OrderPrice
         // Commission Dynamically handle
-        let CommissionBook = await commissionModel.findOne({serviceName:"Book"}) 
+        let CommissionBook = await commissionModel.findOne({ serviceName: "Book" })
         console.log("this is the commission book", CommissionBook)
 
-        req.body.charges = req.body.orderPrice * (CommissionBook?.serviceCommission/100)
+        req.body.charges = req.body.orderPrice * (CommissionBook?.serviceCommission / 100)
         req.body.balance = req.body.orderPrice + req.body.charges;
 
         let result = await TransactionModel.create(req.body)
@@ -170,54 +170,70 @@ const addPaymentMethod = catchAsync(async (req, res, next) => {
 
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result: TransactionData, notificationId: Notification._id })
     } catch (err) {
+        console.log("fskjfl", err)
         res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 
 })
 
-const createCustomer = catchAsync(async (req, res) =>{
-    const {name , email} = req.body
+const addBalance = catchAsync(async (req, res) => {
+    const { customerId, amount, currency } = req.body
+    try {
+        const result = await STRIPE.customers.createBalanceTransaction(customerId,
+            {
+                amount: amount,
+                currency: currency
+            }
+        )
+        return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result: result })
+    } catch (err) {
+        res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
+    }
+})
 
-    try{
+const createCustomer = catchAsync(async (req, res) => {
+    const { name, email } = req.body
+
+    try {
         const customer = await STRIPE.customers.create({
-            name : name,
-            email : email,
-            description : "This Account is Under the Madrasa.io"
+            name: name,
+            email: email,
+            description: "This Account is Under the Madrasa.io"
         })
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result: customer })
-    } catch(err){
+    } catch (err) {
         console.log("this is the err", err)
         return res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 
-const customerGet = catchAsync(async (req, res)=>{
-    const {customerId} = req.body
+const customerGet = catchAsync(async (req, res) => {
+    const { customerId } = req.body
     try {
         const customer = await STRIPE.customers.retrieve(customerId)
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result: customer })
-    } catch(err){
+    } catch (err) {
         console.log("this is the error", err)
         return res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 
-const customerUpdate = catchAsync(async(req, res)=>{
+const customerUpdate = catchAsync(async (req, res) => {
     const updateData = req.body
-    try{
-        const updateCustomer = await STRIPE.customers.update(updateData?.id, {name:updateData?.name, email : updateData?.email})
+    try {
+        const updateCustomer = await STRIPE.customers.update(updateData?.id, { name: updateData?.name, email: updateData?.email })
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result: updateCustomer })
-    } catch (err){
+    } catch (err) {
         console.log("this is the error", err)
         return res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 
-const getAllCustomers = catchAsync(async(req, res)=>{
-    try{
+const getAllCustomers = catchAsync(async (req, res) => {
+    try {
         const getCustomers = await STRIPE.customers.list({})
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result: getCustomers })
-    } catch (err){
+    } catch (err) {
         console.log("this is the error", err)
         return res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
@@ -328,4 +344,4 @@ const deleteTransactionById = catchAsync(async (req, res) => {
 })
 
 
-module.exports = { addPaymentMethod, addTransaction, getAllTransaction, getTransactionById, reviewTransaction, updateTransactionById, deleteTransactionById, addFreeTransaction , createCustomer, customerGet, customerUpdate, getAllCustomers };
+module.exports = { addPaymentMethod, addTransaction, getAllTransaction, getTransactionById, reviewTransaction, updateTransactionById, deleteTransactionById, addFreeTransaction, addBalance,createCustomer, customerGet, customerUpdate, getAllCustomers };

@@ -9,8 +9,11 @@ const bycrypt = require("../../utils/bycrypt");
 const SendEmail = require("../../utils/emails/sendEmail");
 const crypto = require("crypto");
 const catchAsync = require("../../utils/catchAsync");
-const { STATUS_CODE, ERRORS, SUCCESS_MSG } = require("../../constants/index");
+const { STATUS_CODE, ERRORS, SUCCESS_MSG, ROLES } = require("../../constants/index");
 const { GoogleClient } = require("../../utils/GoogleOthClient");
+const { createStripeAccount } = require("../../utils/Stripe");
+const RoleModel = require("../../model/role");
+const { log } = require("console");
 
 
 
@@ -214,12 +217,25 @@ const addPassword = catchAsync(async (req, res, next) => {
         }
         UserData.password = hashPassword;
 
+        const roleData = await RoleModel.findOne({ _id: role })
+        // Create Stripe Account
+        if (roleData.name == ROLES.TEACHER) {
+            let customer = await createStripeAccount(firstName, email)
+            if (customer) {
+                UserData.stripId = customer?.id
+            }
+            else {
+                return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.STRIP_ERROR });
+            }
+        }
+
         await UserData.save();
         UserData.password = null
 
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.ACCOUNT_CREATED_SUCCESS, result: UserData })
 
     } catch (err) {
+        console.log("hsdakjhfdlhf", err)
         res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err });
     }
 

@@ -7,7 +7,7 @@ const BookingModel = require("../../model/booking")
 const TransactionModel = require("../../model/transaction")
 
 // STRIPE :
-const STRIPE = require("../../utils/Stripe")
+const {STRIPE} = require("../../utils/Stripe")
 // Helpers :
 const catchAsync = require("../../utils/catchAsync");
 const { STATUS_CODE, SUCCESS_MSG, ERRORS, ROLES } = require("../../constants");
