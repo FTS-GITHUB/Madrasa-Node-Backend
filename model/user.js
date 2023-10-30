@@ -123,6 +123,9 @@ const userSchema = new mongoose.Schema({
     token: {
         type: String,
     },
+    stripId : {
+        type : String,
+    },
     isSuperAdmin: {
         type: Boolean,
         default: false

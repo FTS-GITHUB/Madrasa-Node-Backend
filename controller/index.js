@@ -16,6 +16,7 @@ const schedule = require("./schedule/index")
 const event = require("./events/index")
 const contact = require("./contact/index")
 const notification = require("./notification/index")
+const commission = require('./commission/index')
 
 
 
@@ -39,7 +40,8 @@ const controllers = {
     schedule,
     event,
     contact,
-    notification
+    notification,
+    commission
 }
 
 module.exports = controllers;
