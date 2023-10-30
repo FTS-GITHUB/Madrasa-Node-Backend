@@ -15,7 +15,7 @@ const getAllNotifications = catchAsync(async (req, res, next) => {
 
     let CurrentUser = req.user;
     try {
-        const result = await NotificationModel.find({ to: { $in: [CurrentUser?._id] } }).populate("to")
+        const result = await NotificationModel.find({ to: { $in: [CurrentUser?._id] } }).populate("to").sort({ createdAt: -1 })
         return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result })
     } catch (err) {
         console.log(err);

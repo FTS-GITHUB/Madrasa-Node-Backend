@@ -140,6 +140,7 @@ const createPaidMeetinglink = catchAsync(async (req, res, next) => {
             status: "paid",
             transactionType: "full",
             orderType: "meeting",
+            sourceModel:"MeetingModel",
             // 5% of charges Round to one decimal
             balance: MeetingBalance,
             charges: (Number(TeacherData?.rate || 6) / 10).toFixed(1),

@@ -31,7 +31,7 @@ const transactionSchema = new mongoose.Schema({
     sources: [
         {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "bookModel",
+            refPath: "sourceModel",
         }
     ],
     status: {
@@ -57,6 +57,11 @@ const transactionSchema = new mongoose.Schema({
             message: "Order Type must be book or tution"
         },
         default: "book",
+    },
+    sourceModel: {
+        type: String,
+        required: true,
+        enum: ['bookModel', 'MeetingModel']
     },
     balance: {
         type: String,
