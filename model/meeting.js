@@ -9,9 +9,10 @@ const RandomStrGen = require("../utils/uniqueStringGenrator")
 
 const MeetingSchema = new mongoose.Schema({
     title: String,
-    link: String,
-    shortLink: String,
+    thoughts: String,
     roomId: String,
+    startDate: String,
+    shortLink: String,
     adminLink: String,
     participants: [{
         type: mongoose.Schema.Types.ObjectId,

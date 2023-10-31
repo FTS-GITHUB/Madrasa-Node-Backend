@@ -26,7 +26,7 @@ const transactionSchema = new mongoose.Schema({
     ],
     title: String,
     orderPrice: {
-        type: String,
+        type: Number,
     },
     sources: [
         {
@@ -54,7 +54,7 @@ const transactionSchema = new mongoose.Schema({
         type: String,
         enum: {
             values: ["book", "tution", 'meeting'],
-            message: "Order Type must be book or tution"
+            message: "Order Type must be book , tution or meeting"
         },
         default: "book",
     },
@@ -64,10 +64,10 @@ const transactionSchema = new mongoose.Schema({
         enum: ['bookModel', 'MeetingModel']
     },
     balance: {
-        type: String,
+        type: Number,
     },
     charges: {
-        type: String,
+        type: Number,
     },
     invoice: {
         type: String,
