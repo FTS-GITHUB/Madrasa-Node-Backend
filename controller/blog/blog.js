@@ -32,9 +32,9 @@ const getAllBlog = catchAsync(async (req, res) => {
         let currentUser = req.user;
         let result;
         if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentUser.role?.name) || currentUser?.isSuperAdmin) {
-            result = await blog.find({});
+            result = await blog.find({}).sort({createdAt:-1});
         } else {
-            result = await blog.find({ auther: currentUser._id });
+            result = await blog.find({ auther: currentUser._id }).sort({createdAt:-1});
         }
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result: result })
     } catch (err) {
