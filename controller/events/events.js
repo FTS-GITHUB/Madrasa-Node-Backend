@@ -78,7 +78,7 @@ const updateEventById = catchAsync(async (req, res) => {
         if (!FindOne) {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND })
         }
-       
+
         const result = await EventModel.findByIdAndUpdate(eventId, data, { new: true });
         return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.UPDATE, result: result })
     } catch (err) {
@@ -95,15 +95,10 @@ const deleteEventById = catchAsync(async (req, res) => {
         if (!FindOne) {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND })
         }
-        let result;
-        if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentUser.role)) {
-            result = await EventModel.findByIdAndDelete(eventId);
-        } else {
-            result = await EventModel.findOneAndDelete({ _id: eventId, auther: currentUser._id });
-        }
+        result = await EventModel.findOneAndDelete({ _id: eventId});
         return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.DELETE })
     } catch (err) {
-        res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
+        return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 

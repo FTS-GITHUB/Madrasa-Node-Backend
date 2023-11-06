@@ -173,13 +173,13 @@ const addPaymentMethod = catchAsync(async (req, res, next) => {
         console.log("fskjfl", err)
         res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
-
 })
 
 const addBalance = catchAsync(async (req, res) => {
     const { customerId, amount, currency } = req.body
     try {
-        const result = await STRIPE.customers.createBalanceTransaction(customerId,
+        const result = await STRIPE.customers.createBalanceTransaction(
+            customerId,
             {
                 amount: amount,
                 currency: currency
@@ -191,22 +191,8 @@ const addBalance = catchAsync(async (req, res) => {
     }
 })
 
-const createCustomer = catchAsync(async (req, res) => {
-    const { name, email } = req.body
 
-    try {
-        const customer = await STRIPE.customers.create({
-            name: name,
-            email: email,
-            description: "This Account is Under the Madrasa.io"
-        })
-        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result: customer })
-    } catch (err) {
-        console.log("this is the err", err)
-        return res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
-    }
-})
-
+// Customer Get API from stripe
 const customerGet = catchAsync(async (req, res) => {
     const { customerId } = req.body
     try {
@@ -218,6 +204,7 @@ const customerGet = catchAsync(async (req, res) => {
     }
 })
 
+// Update Customer Data API from stripe
 const customerUpdate = catchAsync(async (req, res) => {
     const updateData = req.body
     try {
@@ -229,6 +216,7 @@ const customerUpdate = catchAsync(async (req, res) => {
     }
 })
 
+// Get All Customers Data from stripe API
 const getAllCustomers = catchAsync(async (req, res) => {
     try {
         const getCustomers = await STRIPE.customers.list({})
@@ -344,4 +332,4 @@ const deleteTransactionById = catchAsync(async (req, res) => {
 })
 
 
-module.exports = { addPaymentMethod, addTransaction, getAllTransaction, getTransactionById, reviewTransaction, updateTransactionById, deleteTransactionById, addFreeTransaction, addBalance,createCustomer, customerGet, customerUpdate, getAllCustomers };
+module.exports = { addPaymentMethod, addTransaction, getAllTransaction, getTransactionById, reviewTransaction, updateTransactionById, deleteTransactionById, addFreeTransaction, addBalance, customerGet, customerUpdate, getAllCustomers };
