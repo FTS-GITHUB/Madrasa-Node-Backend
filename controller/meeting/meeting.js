@@ -28,6 +28,17 @@ const getAllMeetings = catchAsync(async (req, res, next) => {
     }
 })
 
+const getMeetingByID = catchAsync(async (req, res, next) => {
+    let currentuser = req.user;
+    let id = req.params?.id
+    try {
+        const result = await MeetingModel.findById(id)
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result })
+    } catch (err) {
+        res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
+    }
+})
+
 const getMeetingLinkWithShortLink = catchAsync(async (req, res, next) => {
     let { shortLink } = req.params;
     try {
@@ -71,13 +82,13 @@ const getAllPaidMeetings = catchAsync(async (req, res, next) => {
     try {
         let result;
         if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentuser?.role?.name) || currentuser?.isSuperAdmin) {
-            result = await BookingModel.find({})
+            result = await MeetingModel.find({})
         }
         else if ([ROLES.TEACHER].includes(currentuser?.role?.name)) {
-            result = await BookingModel.find({ admin: currentuser?._id })
+            result = await MeetingModel.find({ admin: currentuser?._id })
         }
         else if ([ROLES.STUDENT].includes(currentuser?.role?.name)) {
-            result = await BookingModel.find({ studentId: currentuser?._id })
+            result = await MeetingModel.find({ participants: { $in: [currentuser?._id] } })
         }
         else {
             result = []
@@ -202,4 +213,4 @@ const startPaidMeeting = catchAsync(async (req, res, next) => {
     }
 })
 
-module.exports = { getAllMeetings, createMeetinglink, getMeetingLinkWithShortLink, createPaidMeetinglink, getAllPaidMeetings, startPaidMeeting };
+module.exports = { getAllMeetings, getMeetingByID, createMeetinglink, getMeetingLinkWithShortLink, createPaidMeetinglink, getAllPaidMeetings, startPaidMeeting };

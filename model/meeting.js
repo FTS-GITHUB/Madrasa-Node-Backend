@@ -14,6 +14,14 @@ const MeetingSchema = new mongoose.Schema({
     startDate: String,
     shortLink: String,
     adminLink: String,
+    status: {
+        type: String,
+        enum: {
+            values: ["pending", "filed", "completed"],
+            message: "The Status must be pending , failed or completed"
+        },
+        default: "pending"
+    },
     participants: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "user"
@@ -24,6 +32,7 @@ const MeetingSchema = new mongoose.Schema({
     }
 }, { timestamps: true })
 
+// Methods :
 MeetingSchema.methods.createShortLink = async function () {
     console.log("IN MIDDLEWARE");
     let shortLink = ""
@@ -54,6 +63,11 @@ MeetingSchema.methods.createRoomID = async function () {
     return this.shortLink
 };
 
+// Middlewaers :
+MeetingSchema.pre("find", function (next) {
+    this.populate("admin participants")
+    next();
+})
 
 const MeetingModel = mongoose.model("MeetingModel", MeetingSchema)
 module.exports = MeetingModel;
