@@ -6,7 +6,6 @@ const transactionController = require("./transaction");
 
 
 
-router.post("/", transactionController.addTransaction);
 router.post("/pay", transactionController.addPaymentMethod);
 router.post('/free', transactionController.addFreeTransaction)
 router.post('/getCustomer', transactionController.customerGet)
@@ -16,6 +15,7 @@ router.post('/addBalance', transactionController.addBalance)
 
 router.use(auth.authenticate)
 
+router.post("/", transactionController.addTransaction);
 router.get("/", transactionController.getAllTransaction);
 router.get("/:id", transactionController.getTransactionById);
 router.patch("/review", transactionController.reviewTransaction);
