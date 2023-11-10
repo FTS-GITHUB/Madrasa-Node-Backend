@@ -5,14 +5,14 @@ const MeetingModel = require("../../model/meeting");
 const UserModel = require("../../model/user");
 const BookingModel = require("../../model/booking")
 const TransactionModel = require("../../model/transaction")
+const CommissionModel = require("../../model/commission");
 
 // STRIPE :
-const {STRIPE} = require("../../utils/Stripe")
+const { STRIPE } = require("../../utils/Stripe")
 // Helpers :
 const catchAsync = require("../../utils/catchAsync");
 const { STATUS_CODE, SUCCESS_MSG, ERRORS, ROLES } = require("../../constants");
 const MeetingURLGen = require("../../utils/zoomLinkgenrator");
-const commissionModel = require("../../model/commission");
 
 
 
@@ -22,6 +22,17 @@ const getAllMeetings = catchAsync(async (req, res, next) => {
     let currentuser = req.user;
     try {
         const result = await MeetingModel.find({ admin: currentuser?._id })
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result })
+    } catch (err) {
+        res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
+    }
+})
+
+const getMeetingByID = catchAsync(async (req, res, next) => {
+    let currentuser = req.user;
+    let id = req.params?.id
+    try {
+        const result = await MeetingModel.findById(id)
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result })
     } catch (err) {
         res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
@@ -71,13 +82,13 @@ const getAllPaidMeetings = catchAsync(async (req, res, next) => {
     try {
         let result;
         if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentuser?.role?.name) || currentuser?.isSuperAdmin) {
-            result = await BookingModel.find({})
+            result = await MeetingModel.find({})
         }
         else if ([ROLES.TEACHER].includes(currentuser?.role?.name)) {
-            result = await BookingModel.find({ admin: currentuser?._id })
+            result = await MeetingModel.find({ admin: currentuser?._id })
         }
         else if ([ROLES.STUDENT].includes(currentuser?.role?.name)) {
-            result = await BookingModel.find({ studentId: currentuser?._id })
+            result = await MeetingModel.find({ participants: { $in: [currentuser?._id] } })
         }
         else {
             result = []
@@ -92,10 +103,7 @@ const createPaidMeetinglink = catchAsync(async (req, res, next) => {
     const UserData = req.user
     try {
 
-        let { firstName, email, teacherID, cardDetails, startDate, thoughts } = req.body;
-        let lastName = ""
-
-
+        let { teacherID, cardDetails, startDate, thoughts } = req.body;
         let { cardNumber, expMonth, expYear, cvc } = cardDetails;
 
         // if (!cardNumber || !expMonth || !expYear || !cvc) {
@@ -103,19 +111,18 @@ const createPaidMeetinglink = catchAsync(async (req, res, next) => {
         // }
 
         const TeacherData = await UserModel.findById(teacherID);
-        // const UserData = await UserModel.findOne({ email: email })
 
 
         // Set Commission Percentage of Meeting
-        let Commission = await commissionModel.findOne({serviceName:"Meeting"})
+        let Commission = await CommissionModel.findOne({ serviceName: "Meeting" })
         let meetingCommission = Commission?.serviceCommission
-        console.log("ythis is the meeting commission", meetingCommission)
+        console.log("This is the meeting commission", meetingCommission)
 
         if (!TeacherData) {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND, error: "Teacher Not Found" })
         }
-        let Balance = (Number((TeacherData?.rate || 0) * (meetingCommission / 100))).toFixed(1)
-        let MeetingBalance = Number(TeacherData?.rate) + Number(Balance)
+        let CommissionBalance = (Number((TeacherData?.rate || 0) * (meetingCommission / 100))).toFixed(1)
+        let MeetingBalance = Number(TeacherData?.rate) + Number(CommissionBalance)
         console.log("ths is the meeting balance", MeetingBalance)
 
         let Pay;
@@ -136,9 +143,8 @@ const createPaidMeetinglink = catchAsync(async (req, res, next) => {
                 currency: 'usd',
                 source: paymentMethod?.id,
                 metadata: {
-                    firstName,
-                    lastName,
-                    email
+                    firstName: UserData.firstName,
+                    email: UserData.email
                 },
             });
             if (!Pay?.status == "succeeded") {
@@ -147,44 +153,38 @@ const createPaidMeetinglink = catchAsync(async (req, res, next) => {
         }
 
         let TransactionData = new TransactionModel({
-            title: `Instant Meeting with ${TeacherData?.firstName} ${TeacherData?.lastName}`,
+            buyerId: UserData?._id,
+            title: `Instant Meeting `,
             orderPrice: TeacherData?.rate,
             status: "paid",
             transactionType: "full",
             orderType: "meeting",
-            // 5% of charges Round to one decimal
+            sourceModel: "MeetingModel",
             balance: MeetingBalance,
-            charges: (Number(TeacherData?.rate) * (meetingCommission / 100)).toFixed(1),
+            charges: CommissionBalance,
             invoice: Pay ? Pay?.receipt_url : "Free"
         })
-        console.log("ths is the charges", Number(TeacherData?.rate) * (meetingCommission / 100))
+        console.log("ths is the charges", CommissionBalance)
 
-        if (UserData) {
-            TransactionData.buyerId = UserData?._id
-        }
         await TransactionData.save();
 
 
-        const MeetingURL = await MeetingURLGen({ title: "My Title" }, next)
+        // const MeetingURL = await MeetingURLGen({ title: "My Title" }, next)
 
-        const MeetingData = new BookingModel({
-            title: `Instant Meeting with ${TeacherData?.firstName} ${TeacherData?.lastName}`,
-            firstName,
-            lastName,
+        const MeetingData = new MeetingModel({
+            title: `Instant Meeting `,
             startDate,
-            // thoughts,
-            email,
+            thoughts,
+            participants: [UserData?._id],
             admin: TeacherData?._id,
-            type: "instantMeeting",
-            ...MeetingURL
-        })
-        if (UserData) {
-            MeetingData.studentId = UserData?._id
-        }
+        });
+        await MeetingData.createRoomID();
+        await MeetingData.save();
 
-        await MeetingData.save()
+        TransactionData.sources = [MeetingData?._id];
+        TransactionData.save();
 
-        let { adminLink, ...result } = MeetingData._doc;
+        let result = MeetingData._doc;
         if (result) {
             result.invoice = MeetingBalance >= 1 ? Pay?.receipt_url : "Free"
         }
@@ -201,7 +201,7 @@ const startPaidMeeting = catchAsync(async (req, res, next) => {
     let currentUser = req.user
     let { id } = req.params;
     try {
-        const result = await BookingModel.findByIdAndUpdate(id, { status: "completed" })
+        const result = await MeetingModel.findByIdAndUpdate(id, { status: "completed" })
         if (!result) {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND, error: "Meeting Not Found" })
         }
@@ -213,4 +213,4 @@ const startPaidMeeting = catchAsync(async (req, res, next) => {
     }
 })
 
-module.exports = { getAllMeetings, createMeetinglink, getMeetingLinkWithShortLink, createPaidMeetinglink, getAllPaidMeetings, startPaidMeeting };
+module.exports = { getAllMeetings, getMeetingByID, createMeetinglink, getMeetingLinkWithShortLink, createPaidMeetinglink, getAllPaidMeetings, startPaidMeeting };

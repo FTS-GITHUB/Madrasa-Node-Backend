@@ -21,7 +21,7 @@ const commissionModel = require("../../model/commission");
 
 // This is the Transaction Post API
 const addTransaction = catchAsync(async (req, res) => {
-    // const currentUser = req.user;
+    const currentUser = req.user;
 
     let { buyerId, sources, orderType, shippingDetails } = req.body;
     let { firstName, lastName, email, address, country, city, postalCode, contactNumber } = shippingDetails;
@@ -32,10 +32,7 @@ const addTransaction = catchAsync(async (req, res) => {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELDS_MISSING, fields: { root: ["sources", "orderType", "shippingDetails"], shippingDetails: ["firstName", "lastName", "email", "address", "country", "city", "postalCode", "contactNumber"] } })
         }
 
-        let findUser = await UserModel.findOne({ email: email })
-        req.body.buyerId = findUser?._id || null;
-        // if (findUser) {
-        // }
+        req.body.buyerId = currentUser?._id;
 
         const allSourcesData = await BookModel.find({ _id: { $in: sources } })
         req.body.orderPrice = 0;
@@ -46,7 +43,7 @@ const addTransaction = catchAsync(async (req, res) => {
                 req.body.title = req.body.title.concat(index >= 1 ? ` | ${book.title.slice(0, 6)}` : book.title.slice(0, 6));
             })
             await Promise.all(process)
-            req.body.sellerId = allSourcesData.map(source => source?.auther?._id)
+            req.body.sellerId = allSourcesData.map(source => source?.auther?._id);
         }
         if (isNaN(req.body.orderPrice)) {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, details: "Source Price Issue" })
@@ -60,7 +57,10 @@ const addTransaction = catchAsync(async (req, res) => {
         req.body.charges = req.body.orderPrice * (CommissionBook?.serviceCommission / 100)
         req.body.balance = req.body.orderPrice + req.body.charges;
 
-        let result = await TransactionModel.create(req.body)
+        let result = await TransactionModel.create({
+            ...req.body,
+            sourceModel: "bookModel"
+        })
 
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result })
 

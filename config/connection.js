@@ -14,6 +14,7 @@ mongoose
   })
   .then(async () => {
     console.log("Database connected")
+    // mongoose.set("debug", true)
     const findStudentRole = await RolesModel.findOne({ name: "student" })
     const findTeacherRole = await RolesModel.findOne({ name: "teacher" })
     const findAdminRole = await RolesModel.findOne({ name: "admin" })

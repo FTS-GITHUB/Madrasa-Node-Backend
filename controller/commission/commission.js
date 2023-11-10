@@ -32,7 +32,14 @@ const setCommission = catchAsync(async (req, res) => {
 // Get All Commission API
 const getCommission = catchAsync(async (req, res) => {
     try {
-        let result = await commissionModel.find({})
+        let result;
+        result = await commissionModel.find({})
+        if (result.length == 0 || result.length > 2) {
+            let dropingCollection = await commissionModel.deleteMany()
+            let addingCommissions = await commissionModel.insertMany([{ serviceName: "Meeting", serviceCommission: 0 }, { serviceName: "Book", serviceCommission: 0 }])
+            // commissionModel.dro
+        }
+        result = await commissionModel.find({})
         return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result })
     } catch (err) {
         return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
