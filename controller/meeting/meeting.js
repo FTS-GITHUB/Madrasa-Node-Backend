@@ -201,7 +201,7 @@ const startPaidMeeting = catchAsync(async (req, res, next) => {
     let currentUser = req.user
     let { id } = req.params;
     try {
-        const result = await BookingModel.findByIdAndUpdate(id, { status: "completed" })
+        const result = await MeetingModel.findByIdAndUpdate(id, { status: "completed" })
         if (!result) {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND, error: "Meeting Not Found" })
         }
