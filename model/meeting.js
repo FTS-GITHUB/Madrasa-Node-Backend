@@ -68,6 +68,10 @@ MeetingSchema.pre("find", function (next) {
     this.populate("admin participants")
     next();
 })
+MeetingSchema.pre("findOne", function (next) {
+    this.populate("admin participants")
+    next();
+})
 
 const MeetingModel = mongoose.model("MeetingModel", MeetingSchema)
 module.exports = MeetingModel;
