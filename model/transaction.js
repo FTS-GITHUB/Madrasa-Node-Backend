@@ -80,7 +80,7 @@ const transactionSchema = new mongoose.Schema({
     })
 
 transactionSchema.pre("find", function (next) {
-    this.populate("buyerId sources")
+    this.populate("buyerId sellerId sources")
     next();
 })
 
