@@ -39,11 +39,11 @@ const userSchema = new mongoose.Schema({
     phone: {
         type: String,
     },
-    timezone : {
-        type : String,
+    timezone: {
+        type: String,
     },
-    age : {
-        type : String,
+    age: {
+        type: String,
     },
     address: {
         type: String,
@@ -123,8 +123,8 @@ const userSchema = new mongoose.Schema({
     token: {
         type: String,
     },
-    stripId : {
-        type : String,
+    stripId: {
+        type: String,
     },
     isSuperAdmin: {
         type: Boolean,
@@ -173,13 +173,14 @@ userSchema.methods.createEmailVerifyToken = async function () {
     //     .update(token)
     //     .digest("hex");
     this.emailVerificationCode = token;
-    this.emailVerificationTokenExpires = Date.now() + 10 * 60 * 1000;
+    this.emailVerificationTokenExpires = Date.now() + 2 * 60 * 1000;
     return token;
 };
 userSchema.methods.verifyEmail = async function ({ email, token }) {
-    let matchEmailCode = await userModel.findOne({ email, emailVerificationCode: token })
+    let matchEmailCode = await userModel.findOne({ email, emailVerificationCode: token }).select("emailVerificationTokenExpires")
 
     if (matchEmailCode) {
+        if (new Date().getTime() > new Date(matchEmailCode.emailVerificationTokenExpires).getTime()) return "expired"
         this.isEmailVerified = true;
         return true;
     }

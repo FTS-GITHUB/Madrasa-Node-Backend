@@ -156,7 +156,10 @@ const verifyEmailCode = catchAsync(async (req, res, next) => {
         }
 
         let verifyCode = await UserData.verifyEmail({ email: UserData.email, token: code });
-        if (!verifyCode) {
+        if (verifyCode == "expired") {
+            res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.INVALID_VERIFICATION_TOKEN });
+            return;
+        } else if (!verifyCode) {
             res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.WRONG_CODE });
             return;
         }
