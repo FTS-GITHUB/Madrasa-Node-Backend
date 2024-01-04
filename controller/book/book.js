@@ -37,9 +37,9 @@ const getAllBook = catchAsync(async (req, res) => {
         let currentUser = req.user;
         let result;
         if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentUser.role?.name) || currentUser?.isSuperAdmin) {
-            result = await book.find({}).sort({createdAt:-1});
+            result = await book.find({}).sort({ createdAt: -1 });
         } else {
-            result = await book.find({ auther: currentUser._id }).sort({createdAt:-1});
+            result = await book.find({ auther: currentUser._id }).sort({ createdAt: -1 });
         }
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result })
     } catch (err) {
@@ -127,19 +127,20 @@ const updateBookById = catchAsync(async (req, res) => {
 const deleteBookById = catchAsync(async (req, res) => {
     const currentUser = req.user
     const bookId = req.params.id
+    console.log("))))))))))))))))))))", currentUser);
     try {
         const FindOne = await book.findById(bookId);
         if (!FindOne) {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND })
         }
         let result;
-        if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentUser.role)) {
+        if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentUser.role?.name) || currentUser?.isSuperAdmin == true) {
             result = await book.findByIdAndDelete(bookId);
         } else {
             result = await book.findOneAndDelete({ _id: bookId, auther: currentUser._id });
 
         }
-        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.DELETE })
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.DELETE, result: result?._id })
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }

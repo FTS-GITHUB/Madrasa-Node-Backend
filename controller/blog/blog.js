@@ -32,9 +32,9 @@ const getAllBlog = catchAsync(async (req, res) => {
         let currentUser = req.user;
         let result;
         if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentUser.role?.name) || currentUser?.isSuperAdmin) {
-            result = await blog.find({}).sort({createdAt:-1});
+            result = await blog.find({}).sort({ createdAt: -1 });
         } else {
-            result = await blog.find({ auther: currentUser._id }).sort({createdAt:-1});
+            result = await blog.find({ auther: currentUser._id }).sort({ createdAt: -1 });
         }
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result: result })
     } catch (err) {
@@ -126,12 +126,12 @@ const deleteBlogById = catchAsync(async (req, res) => {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND })
         }
         let result;
-        if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentUser.role)) {
+        if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentUser.role?.name) || currentUser?.isSuperAdmin) {
             result = await blog.findByIdAndDelete(BlogId);
         } else {
             result = await blog.findOneAndDelete({ _id: BlogId, auther: currentUser._id });
         }
-        return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.DELETE })
+        return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.DELETE, result: result?._id })
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
