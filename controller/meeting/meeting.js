@@ -154,6 +154,7 @@ const createPaidMeetinglink = catchAsync(async (req, res, next) => {
 
         let TransactionData = new TransactionModel({
             buyerId: UserData?._id,
+            sellerId: [TeacherData?._id],
             title: `Instant Meeting `,
             orderPrice: TeacherData?.rate,
             status: "paid",
