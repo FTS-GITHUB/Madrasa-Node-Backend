@@ -1,6 +1,6 @@
 const tag = require("../../model/tag");
 const catchAsync = require("../../utils/catchAsync");
-const { SUCCESS_MSG, ERRORS , STATUS_CODE, ROLES } = require("../../constants/index")
+const { SUCCESS_MSG, ERRORS, STATUS_CODE, ROLES } = require("../../constants/index")
 
 
 
@@ -9,17 +9,21 @@ const addTag = catchAsync(async (req, res) => {
     const currentUser = req.user;
     const data = req.body
 
-    data.user = currentUser?._id
-
     try {
-        if (!data.name || data.name == "") {
+        if (!data || !data.length >= 1 || data.includes(" ")) {
             res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELD })
         }
-        const newData = new tag(data)
-        await newData.save()
-        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.CREATED, result: newData })
+        let result = []
+
+        let CreatingCategories = data.map(async (val) => {
+            let res = await tag.create({ name: val })
+            result.push(res)
+        });
+
+        await Promise.all(CreatingCategories)
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.CREATED, result })
     } catch (err) {
-        res.status(STATUS_CODE.SERVER_ERROR).json({message: ERRORS.PROGRAMMING.SOME_ERROR, err })
+        res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 
@@ -27,13 +31,8 @@ const addTag = catchAsync(async (req, res) => {
 const getAllTag = catchAsync(async (req, res) => {
     try {
         let currentUser = req.user;
-        let result;
-        if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentUser.role)) {
-            result = await tag.find({});
-        } else {
-            result = await tag.find({ auther: currentUser._id });
-        }
-        // const result = await tag.find({ [currentUser.role]: currentUser._id });
+
+        let result = await tag.find();
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result })
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })

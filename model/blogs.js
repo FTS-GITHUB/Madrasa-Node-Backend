@@ -16,18 +16,26 @@ const blogSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "user"
     },
-    quote:{
-        type:String,
+    quote: {
+        type: String,
     },
     isImgDel: {
-        type : Boolean,
-        default : false
+        type: Boolean,
+        default: false
     },
-    slug : {
-        type : String,
-        unique : true,
-        required : [true, "Slug is Required"]
+    slug: {
+        type: String,
+        unique: true,
+        required: [true, "Slug is Required"]
     },
+    categories: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "CategoryModel"
+    }],
+    tags: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "tags"
+    }],
     status: {
         type: String,
         enum: {

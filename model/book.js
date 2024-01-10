@@ -44,10 +44,14 @@ const bookSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "user"
     },
-    category: {
+    categories: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "CategoryModel"
-    },
+    }],
+    tags: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "tags"
+    }],
     isImgDel: {
         type: Boolean,
         default: false
@@ -60,7 +64,7 @@ const bookSchema = new mongoose.Schema({
 
 
 bookSchema.pre("find", function (next) {
-    this.populate("auther category")
+    this.populate("auther")
     next();
 })
 

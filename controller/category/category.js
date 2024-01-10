@@ -1,6 +1,6 @@
 const category = require("../../model/category");
 const catchAsync = require("../../utils/catchAsync");
-const { SUCCESS_MSG , ERRORS , STATUS_CODE, ROLES } = require("../../constants/index")
+const { SUCCESS_MSG, ERRORS, STATUS_CODE, ROLES } = require("../../constants/index")
 
 
 
@@ -9,15 +9,21 @@ const addCategory = catchAsync(async (req, res) => {
     const currentUser = req.user;
     const data = req.body
 
-    data.user = currentUser?._id
-
     try {
-        if (!data.name || data.name == "") {
+        if (!data || !data.length >= 1 || data.includes(" ")) {
             res.status(STATUS_CODE.ALREADY).json({ message: ERRORS.REQUIRED.FIELD })
         }
-        const newData = new category(data)
-        await newData.save()
-        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.CREATED, result: newData })
+
+        let result = []
+
+        let CreatingCategories = data.map(async (val) => {
+            let res = await category.create({ name: val })
+            result.push(res)
+        });
+
+        await Promise.all(CreatingCategories)
+
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.CREATED, result })
     } catch (err) {
         res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
@@ -27,15 +33,11 @@ const addCategory = catchAsync(async (req, res) => {
 const getAllCategory = catchAsync(async (req, res) => {
     try {
         let currentUser = req.user;
-        let result;
-        if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentUser.role)) {
-            result = await category.find({});
-        } else {
-            result = await category.find({ auther: currentUser._id });
-        }
-        res.status(STATUS_CODE.OK).json({ message:SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result })
+
+        let result = await category.find();
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result })
     } catch (err) {
-        res.status(STATUS_CODE.BAD_REQUEST).json({ message : ERRORS.PROGRAMMING.SOME_ERROR, err })
+        res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 
@@ -46,7 +48,7 @@ const getCategoryById = catchAsync(async (req, res) => {
         const result = await category.findById(categoryId);
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result })
     } catch (err) {
-        res.status(STATUS_CODE.BAD_REQUEST).json({ message : ERRORS.PROGRAMMING.SOME_ERROR, err })
+        res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 
@@ -58,7 +60,7 @@ const deleteCategoryById = catchAsync(async (req, res) => {
         const result = await category.findByIdAndDelete(categoryId);
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.DELETE })
     } catch (err) {
-        res.status(STATUS_CODE.BAD_REQUEST).json({ message : ERRORS.PROGRAMMING.SOME_ERROR, err })
+        res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 
