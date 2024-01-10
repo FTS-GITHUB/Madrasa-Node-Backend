@@ -338,7 +338,7 @@ const googleLogin = catchAsync(async (req, res, next) => {
                 findUser.token = token;
                 res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result: findUser });
             } else {
-                res.status(STATUS_CODE.NOT_FOUND).json({ message: ERRORS.INVALID.USER_NOT_FOUND });
+                res.status(STATUS_CODE.NOT_FOUND).json({ message: ERRORS.INVALID.USER_NOT_FOUND, userData });
             }
         }
 
