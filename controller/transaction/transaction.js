@@ -32,35 +32,61 @@ const addTransaction = catchAsync(async (req, res) => {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELDS_MISSING, fields: { root: ["sources", "orderType", "shippingDetails"], shippingDetails: ["firstName", "lastName", "email", "address", "country", "city", "postalCode", "contactNumber"] } })
         }
 
-        req.body.buyerId = currentUser?._id;
+        // Commission Dynamically handle
+        let CommissionBook = await commissionModel.findOne({ serviceName: "Book" })
+
+        let payload = {
+            ...req.body,
+            buyer: currentUser?._id,
+            sourceModel: "bookModel",
+            orderPrice: 0,
+            comissionPercent: CommissionBook.serviceCommission,
+            balance: 0,
+            buyerCharges: 0,
+            sellerCharges: 0,
+            adminBalance: 0,
+            title: ""
+        }
+
+        let sallersPayload = {}
+        let sellers = []
 
         const allSourcesData = await BookModel.find({ _id: { $in: sources } })
-        req.body.orderPrice = 0;
-        req.body.title = ""
         if (allSourcesData && allSourcesData.length >= 1) {
             let process = allSourcesData.map((book, index) => {
-                req.body.orderPrice += Number(book.price);
-                req.body.title = req.body.title.concat(index >= 1 ? ` | ${book.title.slice(0, 6)}` : book.title.slice(0, 6));
+                payload.orderPrice += Number(book.price);
+                payload.title = payload.title.concat(index >= 1 ? ` | ${book.title.slice(0, 6)}` : book.title.slice(0, 6));
+                sallersPayload[book?.auther?._id] = {
+                    sources: Array.isArray(sallersPayload[book?.auther?._id]?.sources) ? [...sallersPayload[book?.auther?._id]?.sources, book?._id] : [book?._id],
+                    orderprice: sallersPayload[book?.auther?._id]?.orderprice ? Number(sallersPayload[book?.auther?._id]?.orderprice) + Number(book?.price) : Number(book?.price),
+                    // charges: sallersPayload[book?.auther?._id]?.orderprice ? (Number(sallersPayload[book?.auther?._id]?.orderprice) + Number(book?.price)) * (CommissionBook?.serviceCommission / 100) : Number(book?.price) * (CommissionBook?.serviceCommission / 100), 
+                }
             })
             await Promise.all(process)
-            req.body.sellerId = allSourcesData.map(source => source?.auther?._id);
+
+            Object.keys(sallersPayload).map(key => {
+                let calCharges = sallersPayload[key].orderprice * (CommissionBook?.serviceCommission / 100)
+                payload.adminBalance = payload.adminBalance + calCharges
+                payload.sellerCharges = payload.sellerCharges + calCharges
+                sellers.push({
+                    userData: key,
+                    sources: sallersPayload[key].sources,
+                    orderprice: sallersPayload[key].orderprice,
+                    charges: calCharges,
+                    balance: sallersPayload[key].orderprice - calCharges
+                })
+            })
         }
-        if (isNaN(req.body.orderPrice)) {
+        if (isNaN(payload.orderPrice)) {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, details: "Source Price Issue" })
         }
 
-        // Charges == % of OrderPrice
-        // Commission Dynamically handle
-        let CommissionBook = await commissionModel.findOne({ serviceName: "Book" })
-        console.log("this is the commission book", CommissionBook)
-
-        req.body.charges = req.body.orderPrice * (CommissionBook?.serviceCommission / 100)
-        req.body.balance = req.body.orderPrice + req.body.charges;
-
-        let result = await TransactionModel.create({
-            ...req.body,
-            sourceModel: "bookModel"
-        })
+        payload.buyerCharges = payload.orderPrice * (payload.comissionPercent / 100)
+        payload.balance = payload.orderPrice + payload.buyerCharges;
+        payload.adminBalance = payload.adminBalance + payload.buyerCharges
+        payload["sellers"] = sellers
+        
+        let result = await TransactionModel.create(payload)
 
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result })
 

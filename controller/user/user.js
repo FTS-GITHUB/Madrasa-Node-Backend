@@ -67,7 +67,7 @@ const updateAccount = catchAsync(async (req, res) => {
 const getAllUser = catchAsync(async (req, res) => {
     const currentUser = req.user;
     try {
-        let result = await userModel.find({ _id: { $nin: [currentUser?._id] } })
+        let result = await userModel.find({ _id: { $nin: [currentUser?._id] } }).sort({ createdAt: -1 });
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result });
     } catch (err) {
         console.log(err);
