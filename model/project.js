@@ -3,11 +3,10 @@ const mongoose = require('mongoose');
 const projectSchema = new mongoose.Schema({
     title: {
         type: String,
-        required: [true, "Project Title is Required"]
     },
     description: {
         type: String,
-        required: [true, " Project Description is Required"]
+        required: [true, "Project Title is Required"]
     },
     status: {
         type: String,

@@ -52,7 +52,7 @@ const blogSchema = new mongoose.Schema({
 
 // BuildIn Methods :
 blogSchema.pre("find", function (next) {
-    this.populate("auther")
+    this.populate("auther tags categories")
     next();
 })
 

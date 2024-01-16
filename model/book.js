@@ -64,7 +64,7 @@ const bookSchema = new mongoose.Schema({
 
 
 bookSchema.pre("find", function (next) {
-    this.populate("auther")
+    this.populate("auther tags categories")
     next();
 })
 

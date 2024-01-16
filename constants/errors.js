@@ -38,6 +38,7 @@ exports.UNIQUE = {
 };
 exports.ALREADY = {
   ACCOUNT_EXIST: "Account Already Exist",
+  ALREADY_UPDATED: "Status Already updated"
 };
 exports.INVALID = {
   INVALID_RESET_LINK: "Password reset code is invalid or has been expired",
@@ -66,5 +67,6 @@ exports.INVALID = {
   WRONG_CODE: "Please Enter Valid Code",
   EXPIRED_CODE: "Expired Code",
   NOT_APPROVED: "Your Account is not approved yet",
-  USER_NOT_FOUND: "User Not Found"
+  USER_NOT_FOUND: "User Not Found",
+  REQUEST: "Invalid Request"
 };
