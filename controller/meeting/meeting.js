@@ -6,6 +6,8 @@ const UserModel = require("../../model/user");
 const BookingModel = require("../../model/booking")
 const TransactionModel = require("../../model/transaction")
 const CommissionModel = require("../../model/commission");
+// Mongoose :
+const mongoose = require("mongoose")
 
 // STRIPE :
 const { STRIPE } = require("../../utils/Stripe")
@@ -100,7 +102,7 @@ const getAllPaidMeetings = catchAsync(async (req, res, next) => {
 })
 
 const createPaidMeetinglink = catchAsync(async (req, res, next) => {
-    const UserData = req.user
+    const currentUser = req.user
     try {
 
         let { teacherID, cardDetails, startDate, thoughts } = req.body;
@@ -111,22 +113,61 @@ const createPaidMeetinglink = catchAsync(async (req, res, next) => {
         // }
 
         const TeacherData = await UserModel.findById(teacherID);
+        if (!TeacherData) return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND, error: "Teacher Not Found" })
+        if (!TeacherData?.rate >= 1) return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND, error: "Teacher Rate Error" })
 
-
-        // Set Commission Percentage of Meeting
+        // Getting Comission
         let Commission = await CommissionModel.findOne({ serviceName: "Meeting" })
         let meetingCommission = Commission?.serviceCommission
         console.log("This is the meeting commission", meetingCommission)
 
-        if (!TeacherData) {
-            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND, error: "Teacher Not Found" })
-        }
-        let CommissionBalance = (Number((TeacherData?.rate || 0) * (meetingCommission / 100))).toFixed(1)
-        let MeetingBalance = Number(TeacherData?.rate) + Number(CommissionBalance)
-        console.log("ths is the meeting balance", MeetingBalance)
 
-        let Pay;
-        if (MeetingBalance >= 1) {
+        let TransactionPayload = {
+            title: "Instant Meeting",
+            buyer: currentUser?._id,
+            sources: [],
+            sellers: [],
+            orderType: "meeting",
+            sourceModel: "MeetingModel",
+            orderPrice: 0,
+            balance: 0,
+            buyerCharges: 0,
+            sellerCharges: 0,
+            comissionPercent: meetingCommission,
+            adminBalance: 0,
+        }
+        let MeetingPayload = {
+            title: `Instant Meeting`,
+            thoughts,
+            startDate,
+            admin: TeacherData?._id,
+            participants: [currentUser?._id]
+        }
+
+        TransactionPayload.orderPrice = Number(TeacherData.rate);
+
+        let CommissionBalance = Number((TransactionPayload.orderPrice * (meetingCommission / 100)).toFixed(2))
+
+        TransactionPayload.buyerCharges = CommissionBalance;
+        TransactionPayload.sellerCharges = CommissionBalance;
+        TransactionPayload.adminBalance = TransactionPayload.buyerCharges + TransactionPayload.sellerCharges;
+        TransactionPayload.balance = TeacherData?.rate + TransactionPayload.buyerCharges;
+
+        let sellerBalance = TeacherData?.rate - TransactionPayload.sellerCharges;
+
+
+        const MongoSession = await mongoose.startSession();
+        await MongoSession.withTransaction(async (transaction) => {
+            const MeetingData = new MeetingModel(MeetingPayload);
+            MeetingData.$session(transaction);
+            await MeetingData.createRoomID();
+            await MeetingData.save();
+
+            const TransactionData = new TransactionModel(TransactionPayload);
+            TransactionData.$session(transaction);
+            TransactionData.sources = [MeetingData?._id];
+            TransactionData.sellers = [{ userData: TeacherData?._id, sources: [MeetingData?._id], orderprice: TeacherData?.rate, charges: CommissionBalance, balance: sellerBalance }]
+
             let paymentMethod = await STRIPE.tokens.create({
                 card: {
                     number: '4242424242424242', // Card number
@@ -136,62 +177,34 @@ const createPaidMeetinglink = catchAsync(async (req, res, next) => {
                 },
             });
             if (!paymentMethod.id) {
+                await transaction.abortTransaction()
                 return res.status(STATUS_CODE.BAD_REQUEST).json({ message: "Error While Adding Card" })
             }
-            Pay = await STRIPE.charges.create({
-                amount: (MeetingBalance * 100).toFixed(0),
+            let Pay = await STRIPE.charges.create({
+                amount: (TransactionPayload.balance * 100).toFixed(0),
                 currency: 'usd',
                 source: paymentMethod?.id,
                 metadata: {
-                    firstName: UserData.firstName,
-                    email: UserData.email
+                    transactionId: TransactionData?._id,
+                    firstName: currentUser?.firstName,
+                    lastName: currentUser?.lastName,
+                    email: currentUser?.email
                 },
             });
             if (!Pay?.status == "succeeded") {
+                await transaction.abortTransaction()
                 return res.status(STATUS_CODE.BAD_REQUEST).json({ message: "Transaction Failed" })
             }
-        }
 
-        let TransactionData = new TransactionModel({
-            buyerId: UserData?._id,
-            sellerId: [TeacherData?._id],
-            title: `Instant Meeting `,
-            orderPrice: TeacherData?.rate,
-            status: "paid",
-            transactionType: "full",
-            orderType: "meeting",
-            sourceModel: "MeetingModel",
-            balance: MeetingBalance,
-            charges: CommissionBalance,
-            invoice: Pay ? Pay?.receipt_url : "Free"
+            TransactionData.status = "paid";
+            TransactionData.invoice = Pay?.receipt_url;
+            await TransactionData.save();
         })
-        console.log("ths is the charges", CommissionBalance)
 
-        await TransactionData.save();
+        await MongoSession.endSession();
 
 
-        // const MeetingURL = await MeetingURLGen({ title: "My Title" }, next)
-
-        const MeetingData = new MeetingModel({
-            title: `Instant Meeting `,
-            startDate,
-            thoughts,
-            participants: [UserData?._id],
-            admin: TeacherData?._id,
-        });
-        await MeetingData.createRoomID();
-        await MeetingData.save();
-
-        TransactionData.sources = [MeetingData?._id];
-        TransactionData.save();
-
-        let result = MeetingData._doc;
-        if (result) {
-            result.invoice = MeetingBalance >= 1 ? Pay?.receipt_url : "Free"
-        }
-
-        res.status(STATUS_CODE.CREATED).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result })
-
+        res.status(STATUS_CODE.CREATED).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL })
     } catch (err) {
         console.log("&&&&&&&&&&", err);
         res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })

@@ -12,28 +12,41 @@ const shippingSchema = new mongoose.Schema({
     address: String,
 }, { _id: false })
 const transactionSchema = new mongoose.Schema({
-    buyerId: {
+    title: String,
+    buyer: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "user",
         default: null
     },
-    sellerId: [
+    sellers: [
         {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "user",
-            default: null
+            userData: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "user",
+                default: null
+            },
+            sources: [
+                {
+                    type: mongoose.Schema.Types.ObjectId,
+                    refPath: "sourceModel",
+                }
+            ],
+            orderprice: Number,
+            charges: Number,
+            balance: Number
         }
     ],
-    title: String,
-    orderPrice: {
-        type: Number,
-    },
     sources: [
         {
             type: mongoose.Schema.Types.ObjectId,
             refPath: "sourceModel",
         }
     ],
+    sourceModel: {
+        type: String,
+        required: true,
+        enum: ['bookModel', 'MeetingModel']
+    },
     status: {
         type: String,
         enum: {
@@ -58,16 +71,23 @@ const transactionSchema = new mongoose.Schema({
         },
         default: "book",
     },
-    sourceModel: {
-        type: String,
-        required: true,
-        enum: ['bookModel', 'MeetingModel']
+    orderPrice: {
+        type: Number,
     },
     balance: {
         type: Number,
     },
-    charges: {
+    buyerCharges: {
         type: Number,
+    },
+    sellerCharges: {
+        type: Number
+    },
+    comissionPercent: {
+        type: Number
+    },
+    adminBalance: {
+        type: Number
     },
     invoice: {
         type: String,
@@ -80,7 +100,7 @@ const transactionSchema = new mongoose.Schema({
     })
 
 transactionSchema.pre("find", function (next) {
-    this.populate("buyerId sellerId sources")
+    this.populate("buyer sources").populate({ path: "sellers", populate: "userData sources" })
     next();
 })
 

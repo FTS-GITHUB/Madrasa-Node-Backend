@@ -70,18 +70,18 @@ const reviewBlog = catchAsync(async (req, res) => {
         if (!status || status == "") {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELD })
         }
-        const FindOne = await blog.findOne({ _id: blogId, status: "pending" })
-        console.log(FindOne)
-        if (FindOne) {
-            if (FindOne.status == "approved" || FindOne.status == "rejected") {
-                return res.status(STATUS_CODE.BAD_REQUEST).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.ALREADY })
-            } else {
-                const result = await blog.findOneAndUpdate({ _id: blogId }, { $set: { status: status } }, { new: true })
-                return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.UPDATE, result })
-            }
-        } else {
-            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.ALREADY })
-        }
+        if (!(status == "approved" || status == "rejected")) return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.REQUEST })
+
+        const result = await blog.findById(blogId)
+
+        if (!result) return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND })
+        if (!result.status == "pending") return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.ALREADY.ALREADY_UPDATED })
+
+        result.status = status;
+        await result.save();
+
+        return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.UPDATE, result })
+
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
