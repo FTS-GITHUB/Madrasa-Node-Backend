@@ -23,7 +23,7 @@ const commissionModel = require("../../model/commission");
 const addTransaction = catchAsync(async (req, res) => {
     const currentUser = req.user;
 
-    let { buyerId, sources, orderType, shippingDetails } = req.body;
+    let { sources, orderType, shippingDetails } = req.body;
     let { firstName, lastName, email, address, country, city, postalCode, contactNumber } = shippingDetails;
 
 
@@ -85,7 +85,7 @@ const addTransaction = catchAsync(async (req, res) => {
         payload.balance = payload.orderPrice + payload.buyerCharges;
         payload.adminBalance = payload.adminBalance + payload.buyerCharges
         payload["sellers"] = sellers
-        
+
         let result = await TransactionModel.create(payload)
 
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result })
@@ -102,7 +102,6 @@ const addTransaction = catchAsync(async (req, res) => {
 const addFreeTransaction = catchAsync(async (req, res) => {
     let { buyerId, sources, orderPrice, shippingDetails, orderType } = req.body;
     let { firstName, lastName, email } = shippingDetails;
-    console.log("-----", req.body)
 
     try {
         if (orderPrice > 0) {
@@ -144,12 +143,12 @@ const addPaymentMethod = catchAsync(async (req, res, next) => {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELDS_MISSING, fields: ["cardNumber", "expMonth", "expYear", "cvc", "bookingId"] })
         }
 
-        let TransactionData = await TransactionModel.findById(bookingId).populate("buyerId");
+        let TransactionData = await TransactionModel.findById(bookingId);
         if (!TransactionData) {
             return res.status(STATUS_CODE.NOT_FOUND).json({ message: "Booking / Transaction Not Found" })
         }
 
-        let UserData = TransactionData?.buyerId || TransactionData?.shippingDetails
+        let UserData = TransactionData?.buyer || TransactionData?.shippingDetails
 
         let paymentMethod = await STRIPE.tokens.create({
             card: {
@@ -184,7 +183,7 @@ const addPaymentMethod = catchAsync(async (req, res, next) => {
         let Notification = new NotificationModel({
             type: TransactionData.orderType,
             from: UserData?._id,
-            to: TransactionData.sellerId,
+            to: TransactionData.sellers,
             source: TransactionData.orderType == "book" ? TransactionData?._id : TransactionData.sources[0],
             title: `${UserData?.firstName} make payment for ${TransactionData?.orderType}`
         })
