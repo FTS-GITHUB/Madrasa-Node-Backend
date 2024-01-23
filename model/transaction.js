@@ -31,7 +31,7 @@ const transactionSchema = new mongoose.Schema({
                     refPath: "sourceModel",
                 }
             ],
-            orderprice: Number,
+            orderPrice: Number,
             charges: Number,
             balance: Number
         }

@@ -85,6 +85,7 @@ const reviewBook = catchAsync(async (req, res) => {
 
         result.status = status;
         await result.save();
+        return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.UPDATE })
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
