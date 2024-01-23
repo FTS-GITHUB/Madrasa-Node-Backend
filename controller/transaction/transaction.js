@@ -58,22 +58,22 @@ const addTransaction = catchAsync(async (req, res) => {
                 payload.title = payload.title.concat(index >= 1 ? ` | ${book.title.slice(0, 6)}` : book.title.slice(0, 6));
                 sallersPayload[book?.auther?._id] = {
                     sources: Array.isArray(sallersPayload[book?.auther?._id]?.sources) ? [...sallersPayload[book?.auther?._id]?.sources, book?._id] : [book?._id],
-                    orderprice: sallersPayload[book?.auther?._id]?.orderprice ? Number(sallersPayload[book?.auther?._id]?.orderprice) + Number(book?.price) : Number(book?.price),
-                    // charges: sallersPayload[book?.auther?._id]?.orderprice ? (Number(sallersPayload[book?.auther?._id]?.orderprice) + Number(book?.price)) * (CommissionBook?.serviceCommission / 100) : Number(book?.price) * (CommissionBook?.serviceCommission / 100), 
+                    orderPrice: sallersPayload[book?.auther?._id]?.orderPrice ? Number(sallersPayload[book?.auther?._id]?.orderPrice) + Number(book?.price) : Number(book?.price),
+                    // charges: sallersPayload[book?.auther?._id]?.orderPrice ? (Number(sallersPayload[book?.auther?._id]?.orderPrice) + Number(book?.price)) * (CommissionBook?.serviceCommission / 100) : Number(book?.price) * (CommissionBook?.serviceCommission / 100), 
                 }
             })
             await Promise.all(process)
 
             Object.keys(sallersPayload).map(key => {
-                let calCharges = sallersPayload[key].orderprice * (CommissionBook?.serviceCommission / 100)
+                let calCharges = sallersPayload[key].orderPrice * (CommissionBook?.serviceCommission / 100)
                 payload.adminBalance = payload.adminBalance + calCharges
                 payload.sellerCharges = payload.sellerCharges + calCharges
                 sellers.push({
                     userData: key,
                     sources: sallersPayload[key].sources,
-                    orderprice: sallersPayload[key].orderprice,
+                    orderPrice: sallersPayload[key].orderPrice,
                     charges: calCharges,
-                    balance: sallersPayload[key].orderprice - calCharges
+                    balance: sallersPayload[key].orderPrice - calCharges
                 })
             })
         }
@@ -262,11 +262,17 @@ const getAllTransaction = catchAsync(async (req, res) => {
         if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentUser.role?.name) || currentUser?.isSuperAdmin) {
             result = await TransactionModel.find({});
         } else {
-            result = await TransactionModel.find({ buyerId: currentUser._id });
-            if (!result || !result.length >= 1) {
-                let sid = new mongoose.Types.ObjectId(currentUser?._id)
-                result = await TransactionModel.find({ sellerId: { $in: [sid] } });
-            }
+            const QUERY = {
+                $or: [
+                    { buyer: currentUser._id },
+                    { 'sellers.userData': currentUser._id },
+                ],
+            };
+            result = await TransactionModel.find(QUERY);
+            // if (!result || !result.length >= 1) {
+            //     let sid = new mongoose.Types.ObjectId(currentUser?._id)
+            //     result = await TransactionModel.find({ sellerId: { $in: [sid] } });
+            // }
         }
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result })
     } catch (err) {
