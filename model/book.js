@@ -52,6 +52,14 @@ const bookSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "tags"
     }],
+    reviews: [{
+        userData: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "user"
+        },
+        value: Number,
+        text: String
+    }],
     isImgDel: {
         type: Boolean,
         default: false
