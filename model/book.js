@@ -53,6 +53,7 @@ const bookSchema = new mongoose.Schema({
         ref: "tags"
     }],
     reviews: [{
+        _id: false,
         userData: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "user"

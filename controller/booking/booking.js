@@ -3,6 +3,8 @@ const catchAsync = require("../../utils/catchAsync");
 const { SUCCESS_MSG, ERRORS, STATUS_CODE, ROLES } = require("../../constants/index")
 const BookModel = require("../../model/book");
 const UserModel = require("../../model/user");
+const mongoose = require("mongoose");
+const bookModel = require("../../model/book");
 
 
 
@@ -132,29 +134,71 @@ const getAllPaidBookings = catchAsync(async (req, res) => {
 // Review Booking
 const reviewBooking = catchAsync(async (req, res) => {
     const currentUser = req.user;
-    let { id, review } = req.body;
+    let { id, text, value } = req.body;
 
     try {
-        const result = await BookingModel.findByIdAndUpdate(bookingId, { $set: updateData });
-        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.UPDATE, result })
+
+        const result = await BookingModel.aggregate([
+            {
+                $match: {
+                    'buyer': new mongoose.Types.ObjectId(currentUser?._id),
+                    'details.sources.bookData': new mongoose.Types.ObjectId(id)
+                }
+            },
+            {
+                $set: {
+                    'details': {
+                        $map: {
+                            input: '$details',
+                            as: 'outer',
+                            in: {
+                                $mergeObjects: [
+                                    '$$outer',
+                                    {
+                                        'sources': {
+                                            $map: {
+                                                input: '$$outer.sources',
+                                                as: 'inner',
+                                                in: {
+                                                    $mergeObjects: [
+                                                        '$$inner',
+                                                        {
+                                                            'review': {
+                                                                $cond: {
+                                                                    if: {
+                                                                        $eq: ['$$inner.bookData', new mongoose.Types.ObjectId(id)]
+                                                                    },
+                                                                    then: {
+                                                                        text,
+                                                                        value
+                                                                    },
+                                                                    else: '$$inner.review'
+                                                                }
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                $merge: BookingModel.collection.name // optional: overwrite the original collection with the updated document
+            }
+        ]);
+
+        const updateBook = await bookModel.findByIdAndUpdate(id, { $push: { reviews: { userData: currentUser?._id, text, value } } }, { new: true });
+
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.UPDATE, result, updateBook })
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 
-// This is the Booking Delete API
-const deleteBookingById = catchAsync(async (req, res) => {
-    const bookingId = req.params.id
-    try {
 
-        let result = await BookingModel.findOneAndDelete({ _id: bookingId, auther: currentUser._id });
-        if (result) {
-            return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.DELETE })
-        }
-        res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND })
-    } catch (err) {
-        res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
-    }
-})
-
-module.exports = { getAllBooking, getBookingById, addBooking, getAllPaidBookings, reviewBooking, deleteBookingById };
+module.exports = { getAllBooking, getBookingById, addBooking, getAllPaidBookings, reviewBooking };

@@ -14,6 +14,6 @@ router.post("/", bookingController.addBooking);
 router.post("/pay", bookingController.addBooking);
 
 router.get("/purchased", bookingController.getAllPaidBookings);
-router.patch("/purchased/review", bookingController.reviewBooking);
+router.put("/purchased/review", bookingController.reviewBooking);
 
 module.exports = router;
