@@ -14,6 +14,7 @@ const { SUCCESS_MSG, ERRORS, STATUS_CODE, ROLES } = require("../../constants/ind
 const mongoose = require("mongoose");
 const sendEmail = require("../../utils/emails/sendEmail");
 const commissionModel = require("../../model/commission");
+const BookingModel = require("../../model/booking");
 
 
 
@@ -134,9 +135,8 @@ const addFreeTransaction = catchAsync(async (req, res) => {
 
 // This is Used to add Paymentds like Cards | BanckAccounts Etc , Post API
 const addPaymentMethod = catchAsync(async (req, res, next) => {
-    // As In This Case the user maybe a Register User or unregister User :
+    let currentUser = req?.user;
     let { cardNumber, expMonth, expYear, cvc, bookingId } = req.body;
-    let UserData;
 
     try {
         if (!cardNumber || !expMonth || !expYear || !cvc || !bookingId) {
@@ -148,7 +148,7 @@ const addPaymentMethod = catchAsync(async (req, res, next) => {
             return res.status(STATUS_CODE.NOT_FOUND).json({ message: "Booking / Transaction Not Found" })
         }
 
-        let UserData = TransactionData?.buyer || TransactionData?.shippingDetails
+        let UserData = currentUser || TransactionData.buyer
 
         let paymentMethod = await STRIPE.tokens.create({
             card: {
@@ -179,6 +179,25 @@ const addPaymentMethod = catchAsync(async (req, res, next) => {
         TransactionData.status = "paid";
         TransactionData.invoice = Pay?.receipt_url;
         await TransactionData?.save();
+
+
+        let bookingObj = {
+            transactionData: TransactionData?._id,
+            sources: TransactionData?.sources.map(source => ({ bookData: source?._id }))
+        }
+
+        // Update Booking :
+        const findBooking = await BookingModel.findOne({ buyer: UserData?._id });
+        if (findBooking) {
+            findBooking.details.push(bookingObj);
+            await findBooking.save();
+        } else {
+            let createBooking = await BookingModel.create({
+                buyer: UserData?._id,
+                details: bookingObj
+            })
+        }
+
 
         let Notification = new NotificationModel({
             type: TransactionData.orderType,

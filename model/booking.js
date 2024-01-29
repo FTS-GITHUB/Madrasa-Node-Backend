@@ -1,61 +1,41 @@
 const mongoose = require("mongoose");
 
-// Helpers :
-const RandomStrGen = require("../utils/uniqueStringGenrator")
+
 
 
 
 const BookingSchema = new mongoose.Schema({
-    studentId: {
+    buyer: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "user",
-        default: null
+        require: true
     },
-    firstName: String,
-    lastName: String,
-    email: String,
-    title: String,
-    // thoughts: String,
-    startDate : String,
-    link: String,
-    shortLink: String,
-    adminLink: String,
-    type: {
-        type: String,
-        enum: {
-            values: ["instantMeeting", "course"]
-        }
-    },
-    status: {
-        type: String,
-        enum: {
-            values: ["pending", "completed", "failed"]
+    details: [{
+        _id: false,
+        transactionData: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "transactionModel",
+            require: true
         },
-        default:"pending"
-    },
-    admin: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "user"
-    }
-}, { timestamps: true })
+        sources: [{
+            _id: false,
+            bookData: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "bookModel",
+                require: true
+            },
+            review: {
+                _id: false,
+                value: Number,
+                text: String
+            }
+        }],
 
-BookingSchema.methods.createShortLink = async function () {
-    console.log("IN MIDDLEWARE");
-    let shortLink = ""
-    do {
-        shortLink = RandomStrGen(8);
-    } while (
-        await BookingModel.findOne({
-            shortLink: shortLink
-        })
-    );
-    this.shortLink = `${shortLink}`
-    // this.shortLink = `/api/meeting/public/${shortLink}`
-    console.log("IN MIDDLEWARE -----> ", this.shortLink);
-    return this.shortLink
-};
+    }]
+}, { timestamps: true });
+
 BookingSchema.pre("find", function (next) {
-    this.populate("admin")
+    this.populate("buyer").populate({ path: "details", populate: "transactionData sources.bookData" })
     next();
 })
 
