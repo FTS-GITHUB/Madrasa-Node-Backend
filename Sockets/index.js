@@ -40,7 +40,7 @@ const onConnection = (socket, io) => {
         if (Notification.type == "book") {
           let data = await TransactionModel.findById(Notification.source).populate("buyerId") ;
           console.log("----------- NOTIFICATION DATA -----------" , data);
-          let UserData = data.buyerId ? data.buyerId : data.shippingDetails;
+          let UserData = data.buyer ? data.buyer : data.shippingDetails;
           console.log("----------- USER DATA -----------" , UserData);
           Notification.to.map((id) => {
             socket.to(String(id)).emit("notification", { message: `${UserData?.firstName} make a payment for Book ` })

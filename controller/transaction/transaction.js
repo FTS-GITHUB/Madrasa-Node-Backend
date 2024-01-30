@@ -7,7 +7,7 @@ const BookModel = require("../../model/book")
 const NotificationModel = require("../../model/notifications");
 
 // STRIPE :
-const { STRIPE } = require("../../utils/Stripe")
+const { STRIPE, TransaferAmountToCustomer } = require("../../utils/Stripe")
 // Helpers :
 const catchAsync = require("../../utils/catchAsync");
 const { SUCCESS_MSG, ERRORS, STATUS_CODE, ROLES } = require("../../constants/index");
@@ -15,6 +15,8 @@ const mongoose = require("mongoose");
 const sendEmail = require("../../utils/emails/sendEmail");
 const commissionModel = require("../../model/commission");
 const BookingModel = require("../../model/booking");
+const userModel = require("../../model/user");
+const DonationModel = require("../../model/donation");
 
 
 
@@ -101,10 +103,15 @@ const addTransaction = catchAsync(async (req, res) => {
 
 // Add Free Transaction At this time Buy Free Book
 const addFreeTransaction = catchAsync(async (req, res) => {
-    let { buyerId, sources, orderPrice, shippingDetails, orderType } = req.body;
-    let { firstName, lastName, email } = shippingDetails;
 
     try {
+
+        let currentUser = req.user;
+
+        let { sources, orderPrice, shippingDetails, orderType } = req.body;
+        let { firstName, lastName, email } = shippingDetails;
+
+
         if (orderPrice > 0) {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: "Source is Not Free" })
         }
@@ -112,20 +119,43 @@ const addFreeTransaction = catchAsync(async (req, res) => {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELDS_MISSING, fields: { root: ["sources", "orderType", "shippingDetails"], shippingDetails: ["firstName", "lastName", "email"] } })
         }
 
-        let findUser = await UserModel.findOne({ email: email })
-        req.body.buyerId = findUser?._id || null;
-        req.body.charges = "Free"
-        req.body.balance = "Free"
-        req.body.orderPrice = "Free"
-        req.body.status = "paid"
+        let payload = {
+            ...req.body,
+            buyer: currentUser?._id,
+            sourceModel: "bookModel",
+            orderPrice: 0,
+            balance: 0,
+            buyerCharges: 0,
+            sellerCharges: 0,
+            adminBalance: 0,
+            title: "",
+            status: "paid"
+        }
+
         let findBook = await BookModel.findOne({ _id: sources })
-        req.body.title = findBook?.title.slice(0, 10)
+        payload.title = findBook?.title.slice(0, 10)
 
-        let newTransaction = new TransactionModel(req.body)
-        await newTransaction.save()
+        let TransactionData = new TransactionModel(payload)
+        await TransactionData.save()
 
-        let result = findBook
-        return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result })
+
+        let bookingObj = {
+            transactionData: TransactionData?._id,
+            sources: TransactionData?.sources.map(source => ({ bookData: source?._id }))
+        }
+        // Update Booking :
+        const findBooking = await BookingModel.findOne({ buyer: currentUser?._id });
+        if (findBooking) {
+            findBooking.details.push(bookingObj);
+            await findBooking.save();
+        } else {
+            let createBooking = await BookingModel.create({
+                buyer: currentUser?._id,
+                details: bookingObj
+            })
+        }
+
+        return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS })
     } catch (err) {
         console.log(err);
         res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
@@ -143,7 +173,7 @@ const addPaymentMethod = catchAsync(async (req, res, next) => {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELDS_MISSING, fields: ["cardNumber", "expMonth", "expYear", "cvc", "bookingId"] })
         }
 
-        let TransactionData = await TransactionModel.findById(bookingId);
+        let TransactionData = await TransactionModel.findById(bookingId).populate({ path: "sellers", populate: "userData" });
         if (!TransactionData) {
             return res.status(STATUS_CODE.NOT_FOUND).json({ message: "Booking / Transaction Not Found" })
         }
@@ -175,6 +205,14 @@ const addPaymentMethod = catchAsync(async (req, res, next) => {
         if (!Pay?.status == "succeeded") {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: "Transaction Failed" })
         }
+
+        let Process = TransactionData?.sellers?.map(async s => {
+            if (s.userData?.stripId) {
+                const transfer = await TransaferAmountToCustomer({ customerId: s.userData?.stripId, amount: (Number(s?.balance) * 100).toFixed(0) })
+                if (!transfer) return res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, transfer })
+            }
+        })
+        await Promise.all(Process);
 
         TransactionData.status = "paid";
         TransactionData.invoice = Pay?.receipt_url;
@@ -237,11 +275,15 @@ const addBalance = catchAsync(async (req, res) => {
 
 
 // Customer Get API from stripe
-const customerGet = catchAsync(async (req, res) => {
-    const { customerId } = req.body
+const customerBalance = catchAsync(async (req, res) => {
+    const currentUser = req.user
     try {
-        const customer = await STRIPE.customers.retrieve(customerId)
-        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result: customer })
+        let { stripId } = currentUser;
+
+        if (!stripId) return res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.STRIP_ERROR })
+
+        const result = await STRIPE.customers.retrieve(stripId)
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result })
     } catch (err) {
         console.log("this is the error", err)
         return res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
@@ -381,5 +423,80 @@ const deleteTransactionById = catchAsync(async (req, res) => {
     }
 })
 
+const chargeDonation = catchAsync(async (req, res, next) => {
 
-module.exports = { addPaymentMethod, addTransaction, getAllTransaction, getTransactionById, reviewTransaction, updateTransactionById, deleteTransactionById, addFreeTransaction, addBalance, customerGet, customerUpdate, getAllCustomers };
+    try {
+        let { amount, cardNumber, expMonth, expYear, cvc, shippingDetails, userId } = req.body;
+        let { firstName, lastName, email } = shippingDetails;
+
+        if (!amount || !cardNumber || !expMonth || !expYear || !cvc) {
+            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELDS_MISSING, fields: ["amount", "cardNumber", "expMonth", "expYear", "cvc", "bookingId"] })
+        }
+        if (!shippingDetails || !email || !firstName || !lastName) {
+            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELDS_MISSING, fields: { root: ["shippingDetails"], shippingDetails: ["firstName", "lastName", "email"] } })
+        }
+
+
+
+        let UserData = shippingDetails;
+        const findUser = await userModel.findById(userId);
+        if (findUser) {
+            UserData["_id"] = findUser?._id
+            UserData["firstName"] = findUser?.firstName
+            UserData["lastName"] = findUser?.lastName
+            UserData["email"] = findUser?.email
+        }
+
+        let paymentMethod = await STRIPE.tokens.create({
+            card: {
+                number: '4242424242424242', // Card number
+                exp_month: 12, // Expiration month (2-digit format)
+                exp_year: 2024, // Expiration year (4-digit format)
+                cvc: '123', // CVC/CVV security code
+            },
+        });
+        if (!paymentMethod.id) {
+            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: "Error While Adding Card" })
+        }
+        let Pay = await STRIPE.charges.create({
+            amount: (Number(amount) * 100).toFixed(0),
+            currency: 'usd',
+            source: paymentMethod?.id,
+            metadata: {
+                firstName: UserData?.firstName,
+                lastName: UserData?.lastName,
+                email: UserData?.email
+            },
+        });
+        if (!Pay?.status == "succeeded") {
+            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: "Transaction Failed" })
+        }
+
+
+        let result = await DonationModel.create({
+            buyer: UserData?._id || null,
+            balance: amount,
+            shippingDetails
+        })
+
+
+        // let Notification = new NotificationModel({
+        //     type: TransactionData.orderType,
+        //     from: UserData?._id,
+        //     to: TransactionData.sellers,
+        //     source: TransactionData.orderType == "book" ? TransactionData?._id : TransactionData.sources[0],
+        //     title: `${UserData?.firstName} make payment for ${TransactionData?.orderType}`
+        // })
+        // await Notification.save();
+
+
+
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result })
+    } catch (err) {
+        console.log("fskjfl", err)
+        res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
+    }
+})
+
+
+module.exports = { addPaymentMethod, addTransaction, getAllTransaction, getTransactionById, reviewTransaction, updateTransactionById, deleteTransactionById, addFreeTransaction, addBalance, customerBalance, customerUpdate, getAllCustomers, chargeDonation };
