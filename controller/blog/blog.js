@@ -64,6 +64,71 @@ const getBlogById = catchAsync(async (req, res) => {
 })
 
 // This is update Review Blog API
+const userReview = catchAsync(async (req, res) => {
+    try {
+        let currentUser = req.user;
+        const { id, review } = req.body;
+
+        if (!id || !review) {
+            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELD, fields: ["id", "review"] })
+        }
+
+        let result = await blog.findById(id);
+        if (!result) return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND })
+
+        let updateReview = {
+            UserData: currentUser?._id,
+            text: review?.text,
+            value: review?.value,
+        }
+
+        let findReview = result?.review?.find(review => review?.UserData == currentUser?._id)
+        if (findReview) {
+            let updatedReview = result?.review.map(review => {
+                if (review?.UserData == currentUser?._id) return updateReview;
+                return review;
+            })
+            result.review = updatedReview;
+        } else {
+            result.review.push(updateReview);
+        }
+        await result.save();
+
+        return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.UPDATE, result })
+
+    } catch (err) {
+        res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
+    }
+})
+// This is update Review Blog API
+const userComment = catchAsync(async (req, res) => {
+    try {
+        let currentUser = req.user;
+        const { id, comment } = req.body;
+
+        if (!id || !comment) {
+            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELD, fields: ["id", "comment"] })
+        }
+
+        let result = await blog.findById(id);
+        if (!result) return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND })
+
+        let newComment = {
+            UserData: currentUser?._id,
+            text: comment,
+        }
+
+        result.comments.push(newComment);
+        await result.save();
+
+        return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.UPDATE, result })
+
+    } catch (err) {
+        res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
+    }
+})
+
+// This is update Review Blog API
 const reviewBlog = catchAsync(async (req, res) => {
     const { blogId, status } = req.body;
     try {
@@ -137,4 +202,4 @@ const deleteBlogById = catchAsync(async (req, res) => {
     }
 })
 
-module.exports = { addBlog, getAllBlog, getPublicBlog, getBlogById, reviewBlog, updateBlogById, deleteBlogById };
+module.exports = { addBlog, getAllBlog, getPublicBlog, getBlogById, userReview, userComment, reviewBlog, updateBlogById, deleteBlogById };
