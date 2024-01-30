@@ -17,6 +17,7 @@ const event = require("./events/index")
 const contact = require("./contact/index")
 const notification = require("./notification/index")
 const commission = require('./commission/index')
+const dashboard = require('./dashboard/index')
 
 
 
@@ -41,7 +42,8 @@ const controllers = {
     event,
     contact,
     notification,
-    commission
+    commission,
+    dashboard
 }
 
 module.exports = controllers;

@@ -19,4 +19,5 @@ module.exports = {
   CONTACT : '/contact',
   NOTIFICATION : '/notification',
   COMMISSION : '/commission',
+  DASHBOARD : '/dashboard',
 };
