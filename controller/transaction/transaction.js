@@ -155,7 +155,7 @@ const addFreeTransaction = catchAsync(async (req, res) => {
             })
         }
 
-        return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS })
+        return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, url: findBook?.file?.url })
     } catch (err) {
         console.log(err);
         res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
@@ -214,6 +214,7 @@ const addPaymentMethod = catchAsync(async (req, res, next) => {
         })
         await Promise.all(Process);
 
+
         TransactionData.status = "paid";
         TransactionData.invoice = Pay?.receipt_url;
         await TransactionData?.save();
@@ -250,7 +251,7 @@ const addPaymentMethod = catchAsync(async (req, res, next) => {
             sendEmail({ email: UserData?.email, subject: "Your Book Link", code: `<a href="https://madrasa-aws-s3-bucket.s3.eu-north-1.amazonaws.com/1256153b-4975-4e13-8d6f-91ddfc3968a8.pdf"> Download Book Here </a>` }, next)
         }
 
-        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result: TransactionData, notificationId: Notification._id })
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, url: TransactionData?.invoice, notificationId: Notification._id })
     } catch (err) {
         console.log("fskjfl", err)
         res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
