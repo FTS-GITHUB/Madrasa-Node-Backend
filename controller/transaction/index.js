@@ -10,7 +10,7 @@ const transactionController = require("./transaction");
 // router.put('/updateCustomer', transactionController.customerUpdate)
 // router.post('/addBalance', transactionController.addBalance)
 
-router.get("/donation", transactionController.chargeDonation);
+router.post("/donation", transactionController.chargeDonation);
 
 router.use(auth.authenticate)
 
@@ -23,6 +23,8 @@ router.post('/free', transactionController.addFreeTransaction)
 router.get('/balance', transactionController.customerBalance)
 
 router.patch("/review", transactionController.reviewTransaction);
+
+router.get("/donation", transactionController.allDonation);
 
 router.get("/:id", transactionController.getTransactionById);
 router.patch("/:id", transactionController.updateTransactionById);

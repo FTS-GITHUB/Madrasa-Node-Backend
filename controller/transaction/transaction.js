@@ -497,6 +497,16 @@ const chargeDonation = catchAsync(async (req, res, next) => {
         res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
+const allDonation = catchAsync(async (req, res, next) => {
+    try {
+        const result = await DonationModel.find().sort({ createdAt: -1 });
+
+        res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result })
+    } catch (err) {
+        console.log("fskjfl", err)
+        res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
+    }
+})
 
 
-module.exports = { addPaymentMethod, addTransaction, getAllTransaction, getTransactionById, reviewTransaction, updateTransactionById, deleteTransactionById, addFreeTransaction, addBalance, customerBalance, customerUpdate, getAllCustomers, chargeDonation };
+module.exports = { addPaymentMethod, addTransaction, getAllTransaction, getTransactionById, reviewTransaction, updateTransactionById, deleteTransactionById, addFreeTransaction, addBalance, customerBalance, customerUpdate, getAllCustomers, chargeDonation, allDonation };
