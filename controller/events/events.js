@@ -4,6 +4,7 @@ const EventModel = require("../../model/events");
 
 const catchAsync = require("../../utils/catchAsync");
 const { SUCCESS_MSG, ERRORS, STATUS_CODE, ROLES } = require("../../constants/index")
+const { uploadFile } = require("../../utils/uploader");
 
 
 
@@ -20,6 +21,10 @@ const addEvent = catchAsync(async (req, res) => {
         if (!data.title || data.title == "" || !data.description || data.description == "") {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELD })
         }
+        if (!data?.type) data.type = "marquee";
+
+        if (req?.file) data.image = await uploadFile(req.file);
+
         const newData = new EventModel(data)
         await newData.save()
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.CREATED, result: newData })
@@ -95,7 +100,7 @@ const deleteEventById = catchAsync(async (req, res) => {
         if (!FindOne) {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND })
         }
-        result = await EventModel.findOneAndDelete({ _id: eventId});
+        result = await EventModel.findOneAndDelete({ _id: eventId });
         return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.DELETE })
     } catch (err) {
         return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
