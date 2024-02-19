@@ -39,9 +39,13 @@ const addEvent = catchAsync(async (req, res) => {
 const getAllEvents = catchAsync(async (req, res) => {
     try {
         let currentUser = req.user;
+        let { type } = req.query;
+
+        if (!type) type = "marquee"
+
         let result;
         if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentUser.role?.name) || currentUser?.isSuperAdmin) {
-            result = await EventModel.find();
+            result = await EventModel.find({ type });
         } else {
             result = await EventModel.find({ auther: currentUser._id });
         }
