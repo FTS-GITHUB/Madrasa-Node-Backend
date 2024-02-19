@@ -4,7 +4,7 @@ const auth = require('../../middlewares/auth/auth')
 const searchController = require('./search')
 
 
-router.use(auth.authenticate)
+// router.use(auth.authenticate)
 
 router.post("/get",searchController.getSearchResult)
 

@@ -6,10 +6,11 @@ const transactionController = require("./transaction");
 
 
 
-router.post('/getCustomer', transactionController.customerGet)
-router.get('/getAllCustomer', transactionController.getAllCustomers)
-router.put('/updateCustomer', transactionController.customerUpdate)
-router.post('/addBalance', transactionController.addBalance)
+// router.get('/getAllCustomer', transactionController.getAllCustomers)
+// router.put('/updateCustomer', transactionController.customerUpdate)
+// router.post('/addBalance', transactionController.addBalance)
+
+router.post("/donation", transactionController.chargeDonation);
 
 router.use(auth.authenticate)
 
@@ -19,9 +20,15 @@ router.post("/", transactionController.addTransaction);
 router.post("/pay", transactionController.addPaymentMethod);
 router.post('/free', transactionController.addFreeTransaction)
 
-router.get("/:id", transactionController.getTransactionById);
+router.get('/balance', transactionController.customerBalance)
+
 router.patch("/review", transactionController.reviewTransaction);
+
+router.get("/donation", transactionController.allDonation);
+
+router.get("/:id", transactionController.getTransactionById);
 router.patch("/:id", transactionController.updateTransactionById);
 router.delete("/:id", transactionController.deleteTransactionById);
+
 
 module.exports = router;

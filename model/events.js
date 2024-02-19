@@ -18,7 +18,15 @@ const eventsSchema = new mongoose.Schema({
     },
     date: {
         type: String
+    },
+    type: {
+        type: String,
+        enum: {
+            values: ["marquee", "event"],
+            message: "Type must be marquee OR event"
+        }
     }
+
 
 },
     {

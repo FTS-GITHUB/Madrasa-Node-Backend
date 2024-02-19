@@ -16,4 +16,14 @@ const createStripeAccount = async (name, email) => {
     })
 }
 
-module.exports = { STRIPE: stripe(SECKEY), createStripeAccount }
+const TransaferAmountToCustomer = async ({ customerId, amount }) => {
+    return await stripe(SECKEY).customers.createBalanceTransaction(
+        customerId,
+        {
+            amount: amount,
+            currency: "usd"
+        }
+    )
+}
+
+module.exports = { STRIPE: stripe(SECKEY), createStripeAccount, TransaferAmountToCustomer }

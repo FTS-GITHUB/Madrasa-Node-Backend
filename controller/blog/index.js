@@ -12,8 +12,9 @@ router.use(auth.authenticate)
 router.post("/", multer.single("file"), blogController.addBlog);
 router.get("/", blogController.getAllBlog);
 router.get("/:id", blogController.getBlogById);
+router.post("/review", blogController.userReview);
+router.post("/comment", blogController.userComment);
 router.patch("/reviewBlog", blogController.reviewBlog);
-// router.patch("/reviewBlog",auth.restrictTo([roles.ADMIN, roles.SUPERADMIN]),blogController.reviewBlog);
 router.patch("/:id", multer.single("file"), blogController.updateBlogById);
 router.delete("/:id", blogController.deleteBlogById);
 

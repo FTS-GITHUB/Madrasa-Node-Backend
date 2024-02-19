@@ -36,6 +36,25 @@ const blogSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "tags"
     }],
+    review: [{
+        UserData: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "user"
+        },
+        text: String,
+        value: Number
+    }],
+    comments: [{
+        UserData: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "user"
+        },
+        text: String,
+        date: {
+            type: Date,
+            default: Date.now
+        }
+    }],
     status: {
         type: String,
         enum: {
@@ -52,7 +71,7 @@ const blogSchema = new mongoose.Schema({
 
 // BuildIn Methods :
 blogSchema.pre("find", function (next) {
-    this.populate("auther tags categories")
+    this.populate("auther tags categories comments.UserData")
     next();
 })
 
