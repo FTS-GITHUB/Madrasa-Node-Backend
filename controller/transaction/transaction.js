@@ -35,6 +35,20 @@ const addTransaction = catchAsync(async (req, res) => {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELDS_MISSING, fields: { root: ["sources", "orderType", "shippingDetails"], shippingDetails: ["firstName", "lastName", "email", "address", "country", "city", "postalCode", "contactNumber"] } })
         }
 
+        // Find If Book Already Purchesed 
+        let PurchesedSources = []
+        let PrechasedCheckProcess = sources.map(async s => {
+            let isExists = await BookingModel.exists({ buyer: currentUser?._id, "details.sources.bookData": s })
+            if (isExists) {
+                let bookData = await BookModel.findById(s);
+                PurchesedSources.push(bookData.title)
+            }
+        })
+        await Promise.all(PrechasedCheckProcess);
+        if (PurchesedSources.length >= 1) {
+            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: PurchesedSources.join(" | ") + " Books Already Purchesed" })
+        }
+
         // Commission Dynamically handle
         let CommissionBook = await commissionModel.findOne({ serviceName: "Book" })
 
@@ -119,6 +133,17 @@ const addFreeTransaction = catchAsync(async (req, res) => {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELDS_MISSING, fields: { root: ["sources", "orderType", "shippingDetails"], shippingDetails: ["firstName", "lastName", "email"] } })
         }
 
+        // Find If Book Already Purchesed 
+        let PurchesedSources = []
+        let PrechasedCheckProcess = sources.map(async s => {
+            let isExists = await BookingModel.exists({ buyer: currentUser?._id, "details.sources.bookData": s })
+            if (isExists) {
+                let bookData = await BookModel.findById(s);
+                PurchesedSources.push(bookData.title)
+            }
+        })
+        await Promise.all(PrechasedCheckProcess);
+
         let payload = {
             ...req.body,
             buyer: currentUser?._id,
@@ -135,7 +160,14 @@ const addFreeTransaction = catchAsync(async (req, res) => {
         let findBook = await BookModel.findOne({ _id: sources })
         payload.title = findBook?.title.slice(0, 10)
 
+        // No Recording Transaction in case of Already Purchesed Free Book
+        if (PurchesedSources.length >= 1) {
+            return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, url: findBook?.file?.url })
+            // return res.status(STATUS_CODE.BAD_REQUEST).json({ message: PurchesedSources.join(" | ") + " Book Already Purchesed" })
+        }
+
         let TransactionData = new TransactionModel(payload)
+        TransactionData.sellers = [{ userData: findBook?.auther?._id }]
         await TransactionData.save()
 
 

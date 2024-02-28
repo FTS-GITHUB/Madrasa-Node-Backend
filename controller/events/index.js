@@ -12,7 +12,7 @@ router.use(auth.authenticate)
 router.post("/", multer.single("file"), eventController.addEvent);
 router.get("/", eventController.getAllEvents);
 router.get("/:id", eventController.getEventById);
-router.patch("/:id", eventController.updateEventById);
+router.patch("/:id", multer.single("file"), eventController.updateEventById);
 router.delete("/:id", eventController.deleteEventById);
 
 module.exports = router;

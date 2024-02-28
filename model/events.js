@@ -19,6 +19,12 @@ const eventsSchema = new mongoose.Schema({
     date: {
         type: String
     },
+    country: {
+        type: String
+    },
+    city: {
+        type: String
+    },
     type: {
         type: String,
         enum: {
