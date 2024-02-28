@@ -166,7 +166,7 @@ const createPaidMeetinglink = catchAsync(async (req, res, next) => {
             const TransactionData = new TransactionModel(TransactionPayload);
             TransactionData.$session(transaction);
             TransactionData.sources = [MeetingData?._id];
-            TransactionData.sellers = [{ userData: TeacherData?._id, sources: [MeetingData?._id], orderprice: TeacherData?.rate, charges: CommissionBalance, balance: sellerBalance }]
+            TransactionData.sellers = [{ userData: TeacherData?._id, sources: [MeetingData?._id], orderPrice: Number(TeacherData.rate), charges: CommissionBalance, balance: sellerBalance }]
 
             let paymentMethod = await STRIPE.tokens.create({
                 card: {

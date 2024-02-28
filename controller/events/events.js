@@ -88,6 +88,9 @@ const updateEventById = catchAsync(async (req, res) => {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND })
         }
 
+        if(!data.type) data.type = "marquee";
+        if (req?.file) data.image = await uploadFile(req.file);
+
         const result = await EventModel.findByIdAndUpdate(eventId, data, { new: true });
         return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.UPDATE, result: result })
     } catch (err) {
