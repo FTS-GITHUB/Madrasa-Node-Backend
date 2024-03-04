@@ -18,6 +18,7 @@ const contact = require("./contact/index")
 const notification = require("./notification/index")
 const commission = require('./commission/index')
 const dashboard = require('./dashboard/index')
+const withdrawal = require('./Withdrawal/index')
 
 
 
@@ -43,7 +44,8 @@ const controllers = {
     contact,
     notification,
     commission,
-    dashboard
+    dashboard,
+    withdrawal
 }
 
 module.exports = controllers;

@@ -20,4 +20,5 @@ module.exports = {
   NOTIFICATION : '/notification',
   COMMISSION : '/commission',
   DASHBOARD : '/dashboard',
+  WITHDRAWAL : '/withdrawal',
 };
