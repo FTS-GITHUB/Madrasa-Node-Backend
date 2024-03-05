@@ -205,7 +205,7 @@ const addPaymentMethod = catchAsync(async (req, res, next) => {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELDS_MISSING, fields: ["cardNumber", "expMonth", "expYear", "cvc", "bookingId"] })
         }
 
-        let TransactionData = await TransactionModel.findById(bookingId).populate({ path: "sellers", populate: "userData" });
+        let TransactionData = await TransactionModel.findById(bookingId).populate({ path: "sellers", populate: "userData sources" });
         if (!TransactionData) {
             return res.status(STATUS_CODE.NOT_FOUND).json({ message: "Booking / Transaction Not Found" })
         }
