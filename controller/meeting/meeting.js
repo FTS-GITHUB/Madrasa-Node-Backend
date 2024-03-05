@@ -19,7 +19,6 @@ const SendEmail = require("../../utils/emails/sendEmail");
 
 
 
-
 const getAllMeetings = catchAsync(async (req, res, next) => {
     let currentuser = req.user;
     try {
@@ -202,8 +201,6 @@ const createPaidMeetinglink = catchAsync(async (req, res, next) => {
         })
 
         await MongoSession.endSession();
-
-
 
         // Email Send Code
         await SendEmail({ email: TeacherData?.email, subject: "Meeting Booked", code: `${currentUser?.firstName} ${currentUser?.lastName} Booked a Meeting` });
