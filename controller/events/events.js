@@ -58,7 +58,10 @@ const getAllEvents = catchAsync(async (req, res) => {
 // This is the get All Public Blog Which is Approve Data API
 const getPublicEvents = catchAsync(async (req, res) => {
     try {
-        const result = await EventModel.find()
+        let { type } = req.query;
+
+        if (!type) type = "marquee"
+        const result = await EventModel.find({ type })
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result })
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
@@ -88,7 +91,7 @@ const updateEventById = catchAsync(async (req, res) => {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND })
         }
 
-        if(!data.type) data.type = "marquee";
+        if (!data.type) data.type = "marquee";
         if (req?.file) data.image = await uploadFile(req.file);
 
         const result = await EventModel.findByIdAndUpdate(eventId, data, { new: true });
