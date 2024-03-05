@@ -31,11 +31,10 @@ const replyContact = catchAsync(async (req, res, next) => {
     try {
         let { contactId, message } = req.body;
 
-        if (!contactId || message) return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELDS_MISSING, fields: ["contactId", "message"] });
-
+        if (!contactId || !message) return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.REQUIRED.FIELDS_MISSING, fields: ["contactId", "message"] });
 
         const isExist = await contact.findById(contactId);
-        if (isExist) return res.status(STATUS_CODE.DUPLICATE).json({ message: "Contact not Found" });
+        if (!isExist) return res.status(STATUS_CODE.NOT_FOUND).json({ message: "Contact not Found" });
 
         await SendEmail(
             {
