@@ -14,6 +14,6 @@ router.post("/add", contactController.addContact);
 router.use(auth.authenticate);
 
 router.get("/", contactController.allContact);
-router.get("/reply", contactController.replyContact);
+router.post("/reply", contactController.replyContact);
 
 module.exports = router;
