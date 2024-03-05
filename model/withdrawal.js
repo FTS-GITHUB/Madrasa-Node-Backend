@@ -39,6 +39,14 @@ const withdrawalSchema = new mongoose.Schema({
         type: Number,
         default: false,
     },
+    status: {
+        type: String,
+        enum: {
+            values: ["rejected", "paid", "pending"],
+            message: "Status must Be pending, paid or rejected",
+        },
+        default: "pending",
+    },
 },
     {
         timestamps: true,

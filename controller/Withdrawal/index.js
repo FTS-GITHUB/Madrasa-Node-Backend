@@ -9,5 +9,7 @@ const auth = require('../../middlewares/auth/auth')
 
 router.use(auth.authenticate)
 router.post("/", withdrawalController.addRequest);
+router.get("/", withdrawalController.getAllWithdrawals);
+
 
 module.exports = router;
