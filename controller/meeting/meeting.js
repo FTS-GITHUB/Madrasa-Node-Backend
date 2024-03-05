@@ -15,7 +15,7 @@ const { STRIPE } = require("../../utils/Stripe")
 const catchAsync = require("../../utils/catchAsync");
 const { STATUS_CODE, SUCCESS_MSG, ERRORS, ROLES } = require("../../constants");
 const MeetingURLGen = require("../../utils/zoomLinkgenrator");
-
+const SendEmail = require("../../utils/emails/sendEmail");
 
 
 
@@ -202,6 +202,12 @@ const createPaidMeetinglink = catchAsync(async (req, res, next) => {
         })
 
         await MongoSession.endSession();
+
+
+
+        // Email Send Code
+        await SendEmail({ email: TeacherData?.email, subject: "Meeting Booked", code: `${currentUser?.firstName} ${currentUser?.lastName} Booked a Meeting` });
+
 
 
         res.status(STATUS_CODE.CREATED).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL })

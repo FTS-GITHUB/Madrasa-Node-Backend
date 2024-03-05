@@ -243,6 +243,16 @@ const addPaymentMethod = catchAsync(async (req, res, next) => {
                 const transfer = await TransaferAmountToCustomer({ customerId: s.userData?.stripId, amount: (Number(s?.balance) * 100).toFixed(0) })
                 if (!transfer) return res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, transfer })
             }
+
+
+            // Making Sources Name with For each Sellers to Send Email
+
+            if (Array.isArray(s.sources)) {
+                let ProductName = s.sources.map(product => product?.title).join(" | ")
+                await sendEmail({ email: s.userData?.email, subject: "Book Buyed", code: `${ProductName} Buyed by ${currentUser?.firstName} ${currentUser?.lastName}` })
+
+            }
+
         })
         await Promise.all(Process);
 
