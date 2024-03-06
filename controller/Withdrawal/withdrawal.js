@@ -13,7 +13,7 @@ const addRequest = catchAsync(async (req, res) => {
     const currentUser = req.user;
     const data = req.body
     // console.log(data);
-    // return res.status(STATUS_CODE.BAD_REQUEST).json({data})
+    // return res.status(STATUS_CODE.OK).json({data})
 
     data.UserData = currentUser?._id
 
@@ -29,8 +29,16 @@ const addRequest = catchAsync(async (req, res) => {
 
         const result = await STRIPE.customers.retrieve(stripId)
         // res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, result })
-        if(result.balance < data.amount ){
-            return res.status(STATUS_CODE.SERVER_ERROR).json({ message: "You Dont Have Enough Amount In Your Account!"})
+        if(!currentUser)  res.status(STATUS_CODE.UNAUTHORIZED).json({ message: ERRORS.UNAUTHORIZED.UNABLE})
+        const totalWithdrawal = await withdrawalModel.aggregate([
+            { $match: { UserData: currentUser._id, status: "pending" } }, // Filter withdrawals for the current user
+            { $group: { _id: null, total: { $sum: "$amount" } } } // Calculate the sum of the amount field
+        ]);
+        // res.json({ totalWithdrawal});
+            // Extract the total sum from the result (if any)
+        const sumOfAmounts = totalWithdrawal.length > 0 ? totalWithdrawal[0].total : 0;
+        if(result.balance < data.amount || result.balance < sumOfAmounts ){
+            return res.status(STATUS_CODE.SERVER_ERROR).json({ message: "Invalid Amount"})
         }
         else{
             const newData = new withdrawalModel(data)
@@ -50,11 +58,46 @@ const getAllWithdrawals = catchAsync(async (req, res) => {
         if ([ROLES.ADMIN, ROLES.SUPERADMIN].includes(currentUser.role?.name) || currentUser?.isSuperAdmin) {
             result = await withdrawalModel.find({ }).populate("UserData");
         }
+        else {
+            result = await withdrawalModel.find({ UserData: currentUser?._id }).populate("UserData");
+        }
         res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.SUCCESS, result })
         // res.status(STATUS_CODE.UNAUTHORIZED).json({ message: ERRORS.UNAUTHORIZED.UNABLE})
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
+const totalwithdrawl = catchAsync(async (req, res) => {
+    try{
+        let currentUser = req.user;
+        let { stripId } = currentUser;
+        if (!stripId) return res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.STRIP_ERROR })
 
-module.exports = {addRequest, getAllWithdrawals}
+        if(!currentUser)  res.status(STATUS_CODE.UNAUTHORIZED).json({ message: ERRORS.UNAUTHORIZED.UNABLE})
+        const totalWithdrawal = await withdrawalModel.aggregate([
+            { $match: { UserData: currentUser._id, status: "paid" } }, // Filter withdrawals for the current user
+            { $group: { _id: null, total: { $sum: "$amount" } } } // Calculate the sum of the amount field
+        ]);
+        // res.json({ totalWithdrawal});
+            // Extract the total sum from the result (if any)
+    const sumOfAmounts = totalWithdrawal.length > 0 ? totalWithdrawal[0].total : 0;
+
+    const pendingtotalWithdrawal = await withdrawalModel.aggregate([
+        { $match: { UserData: currentUser._id, status: "pending" } }, // Filter withdrawals for the current user
+        { $group: { _id: null, total: { $sum: "$amount" } } } // Calculate the sum of the amount field
+    ]);
+    // res.json({ totalWithdrawal});
+        // Extract the total sum from the result (if any)
+    const pendingsumOfAmounts = pendingtotalWithdrawal.length > 0 ? pendingtotalWithdrawal[0].total : 0;
+
+    const balance = await STRIPE.customers.retrieve(stripId)
+
+
+    // Send the sum as a response
+    res.status(STATUS_CODE.OK).json({ sumOfAmounts , balance, pendingsumOfAmounts });
+    } catch (err) {
+        res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
+    }
+})
+
+module.exports = {addRequest, getAllWithdrawals, totalwithdrawl,}
