@@ -69,7 +69,7 @@ const getAllPaidBookings = catchAsync(async (req, res) => {
 
         const result = await BookingModel.aggregate([
             {
-                $match: { /* Your match conditions, if any */ }
+                $match: { buyer: new mongoose.Types.ObjectId(currentUser?._id) }
             },
             {
                 $unwind: "$details"
