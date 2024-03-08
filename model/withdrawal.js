@@ -28,7 +28,7 @@ const withdrawalSchema = new mongoose.Schema({
         default: false,
     },
     iban: {
-        type: Number,
+        type: String,
         default: false,
     },
     account_number: {
@@ -38,6 +38,9 @@ const withdrawalSchema = new mongoose.Schema({
     amount: {
         type: Number,
         default: false,
+    },
+    image: {
+        type: Object,
     },
     status: {
         type: String,

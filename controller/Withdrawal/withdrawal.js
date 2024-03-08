@@ -70,6 +70,8 @@ const getAllWithdrawals = catchAsync(async (req, res) => {
 const totalwithdrawl = catchAsync(async (req, res) => {
     try{
         let currentUser = req.user;
+
+        if(!currentUser?.isSuperAdmin){
         let { stripId } = currentUser;
         if (!stripId) return res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.STRIP_ERROR })
 
@@ -78,26 +80,63 @@ const totalwithdrawl = catchAsync(async (req, res) => {
             { $match: { UserData: currentUser._id, status: "paid" } }, // Filter withdrawals for the current user
             { $group: { _id: null, total: { $sum: "$amount" } } } // Calculate the sum of the amount field
         ]);
-        // res.json({ totalWithdrawal});
-            // Extract the total sum from the result (if any)
+        
     const sumOfAmounts = totalWithdrawal.length > 0 ? totalWithdrawal[0].total : 0;
 
     const pendingtotalWithdrawal = await withdrawalModel.aggregate([
         { $match: { UserData: currentUser._id, status: "pending" } }, // Filter withdrawals for the current user
         { $group: { _id: null, total: { $sum: "$amount" } } } // Calculate the sum of the amount field
     ]);
-    // res.json({ totalWithdrawal});
-        // Extract the total sum from the result (if any)
+    
     const pendingsumOfAmounts = pendingtotalWithdrawal.length > 0 ? pendingtotalWithdrawal[0].total : 0;
 
     const balance = await STRIPE.customers.retrieve(stripId)
+    
+    res.status(STATUS_CODE.OK).json({ sumOfAmounts , balance, pendingsumOfAmounts });
+    }
 
 
     // Send the sum as a response
-    res.status(STATUS_CODE.OK).json({ sumOfAmounts , balance, pendingsumOfAmounts });
+   
+    } catch (err) {
+        res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
+    }
+})
+// const updateWithdrawal = catchAsync(async (req, res ) => {
+//     const currentUser = req.user;
+//     const data = req.body;
+//     const BlogId = req.params.id;
+//     try {
+//         return res.status(STATUS.OK).json({ data });
+//     } catch (err) {
+//         res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
+//     }
+// })
+
+const updateWithdrawal = catchAsync(async (req, res) => {
+
+    const currentUser = req.user;
+    const data = req.body;
+    const withdrawalId = req.params.id;
+    try {
+        // res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, data })
+        const FindOne = await withdrawalModel.findById(withdrawalId)
+        if (!FindOne) {
+            return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND })
+        }
+        if (data.isImgDel == "true") {
+            data.image = {};
+        } else {
+            if (req.file) {
+                data.image = await uploadFile(req.file, data?.image?.url || null);
+            }
+        }
+        const result = await withdrawalModel.findByIdAndUpdate(withdrawalId, data, { new: true });
+        return res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.UPDATE, result: result })
     } catch (err) {
         res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })
     }
 })
 
-module.exports = {addRequest, getAllWithdrawals, totalwithdrawl,}
+
+module.exports = {addRequest, getAllWithdrawals, totalwithdrawl, updateWithdrawal}
