@@ -118,10 +118,27 @@ const updateWithdrawal = catchAsync(async (req, res) => {
     const currentUser = req.user;
     const data = req.body;
     const withdrawalId = req.params.id;
+    
+   
     try {
-        // res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, data })
-        const FindOne = await withdrawalModel.findById(withdrawalId)
-        if (!FindOne) {
+
+        const withdrawal = await withdrawalModel.findById(withdrawalId).populate("UserData");
+         let { stripId } = withdrawal?.UserData;
+       
+        const customer = await STRIPE.customers.retrieve(stripId);
+        // return res.status(STATUS_CODE.OK).json({ customer: customer});
+        
+        if(data?.status == 'paid' && withdrawal?.status !== 'paid') 
+        {
+          const newbalance =  customer.balance -= data.amount;
+          const updatedCustomer = await STRIPE.customers.update(stripId, {
+            balance: newbalance
+          });
+        }
+
+        // res.status(STATUS_CODE.OK).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, newbalance })
+        // const FindOne = await withdrawalModel.findById(withdrawalId)
+        if (!withdrawal) {
             return res.status(STATUS_CODE.BAD_REQUEST).json({ message: ERRORS.INVALID.NOT_FOUND })
         }
         if (data.isImgDel == "true") {
