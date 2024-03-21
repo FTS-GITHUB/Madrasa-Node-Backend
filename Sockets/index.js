@@ -13,19 +13,15 @@ const userModel = require("../model/user");
 
 
 const onConnection = (socket, io) => {
-  console.log("----- IO-ROOMS-B ------ ", socket.rooms);
-  console.log("----- IO ------ ", socket.id);
+  console.log("----- Client Connected ------ ", socket.id);
 
   socket.on("join", async ({ UserId }, callback) => {
 
-    console.log("----- IO-JOIN ------ ", UserId);
+    console.log("----- Client JOIN ------ ", UserId);
 
     addOnlineUser(UserId, socket.id)
-    let UserData = await UserModel.findById(UserId);
     // socket.join(String(UserData?._id));
-    socket.join(String(UserData?._id));
-
-    console.log("----- IO-ROOMS-F ------ ", socket.rooms);
+    // socket.join(String(UserData?._id));
 
     if (typeof callback === "function") callback({
       status: socket.id,
@@ -35,24 +31,32 @@ const onConnection = (socket, io) => {
   socket.on("newNotification", async (notificationId, callback) => {
     console.log("------------------------>", notificationId, socket.id);
     try {
-      const Notification = await NotificationModel.findById(notificationId)
+      const Notification = await NotificationModel.findById(notificationId).populate("from")
       if (Notification) {
-        if (Notification.type == "book") {
-          let data = await TransactionModel.findById(Notification.source).populate("buyerId") ;
-          console.log("----------- NOTIFICATION DATA -----------" , data);
-          let UserData = data.buyer ? data.buyer : data.shippingDetails;
-          console.log("----------- USER DATA -----------" , UserData);
-          Notification.to.map((id) => {
-            socket.to(String(id)).emit("notification", { message: `${UserData?.firstName} make a payment for Book ` })
-            // io.to(id).emit("notification", { message: `${UserData?.firstName} make a payment for Book ` });
-          })
-        } else {
-          let data = await MeetingModel.findById(Notification.source)
-          Notification.to.map((id) => {
-            socket.to(String(id)).emit("notification", { message: `${data?.firstName} make a payment for Meeting ` })
-            // io.to(id).emit("notification", { message: `${data?.firstName} make a payment for Meeting ` });
-          })
-        }
+        let UserData = Notification.from
+        let allClients = Notification.to
+        let FindOnlineUsers = await OnlineUsersModel.find({ userId: { $in: allClients } })
+        FindOnlineUsers.map(online => {
+          io.to(online.socketId).emit("notification", { message: `${UserData?.firstName} make a payment for ${Notification.type[0].toLocaleUpperCase()}${Notification.type.slice(1)} ` });
+        })
+
+
+        // if (Notification.type == "book") {
+        //   let data = await TransactionModel.findById(Notification.source).populate("buyerId") ;
+        //   console.log("----------- NOTIFICATION DATA -----------" , data);
+        //   let UserData = data.buyer ? data.buyer : data.shippingDetails;
+        //   console.log("----------- USER DATA -----------" , UserData);
+        //   Notification.to.map((id) => {
+        //     socket.to(String(id)).emit("notification", { message: `${UserData?.firstName} make a payment for Book ` })
+        //     // io.to(id).emit("notification", { message: `${UserData?.firstName} make a payment for Book ` });
+        //   })
+        // } else {
+        //   let data = await MeetingModel.findById(Notification.source)
+        //   Notification.to.map((id) => {
+        //     socket.to(String(id)).emit("notification", { message: `${data?.firstName} make a payment for Meeting ` })
+        //     // io.to(id).emit("notification", { message: `${data?.firstName} make a payment for Meeting ` });
+        //   })
+        // }
       } else {
         console.log("-------- NO Notification Found ---------");
       }
@@ -70,8 +74,7 @@ const onConnection = (socket, io) => {
 
   socket.on("disconnect", async () => {
     removeOnlineUser(socket.id)
-    console.log("----- IO-ROOMS-END ------ ", socket.rooms);
-    console.log("----- IO-END ------ ");
+    console.log("----- IO-END ------ ", socket.id);
     //   await removeUser(socket.id);
   });
 };

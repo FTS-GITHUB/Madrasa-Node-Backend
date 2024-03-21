@@ -6,6 +6,7 @@ const UserModel = require("../../model/user");
 const BookingModel = require("../../model/booking")
 const TransactionModel = require("../../model/transaction")
 const CommissionModel = require("../../model/commission");
+const NotificationModel = require("../../model/notifications");
 // Mongoose :
 const mongoose = require("mongoose")
 
@@ -154,7 +155,7 @@ const createPaidMeetinglink = catchAsync(async (req, res, next) => {
 
         let sellerBalance = TeacherData?.rate - TransactionPayload.sellerCharges;
 
-
+        let CreteNotification
         const MongoSession = await mongoose.startSession();
         await MongoSession.withTransaction(async (transaction) => {
             const MeetingData = new MeetingModel(MeetingPayload);
@@ -198,6 +199,16 @@ const createPaidMeetinglink = catchAsync(async (req, res, next) => {
             TransactionData.status = "paid";
             TransactionData.invoice = Pay?.receipt_url;
             await TransactionData.save();
+
+            CreteNotification = new NotificationModel({
+                type: TransactionData.orderType,
+                from: currentUser?._id,
+                to: TransactionData.sellers?.map(data => data?.userData?._id),
+                source: TransactionData._id,
+                title: `${currentUser?.firstName} Book a Meeting`
+            })
+            CreteNotification.$session(transaction)
+            await CreteNotification.save()
         })
 
         await MongoSession.endSession();
@@ -207,7 +218,7 @@ const createPaidMeetinglink = catchAsync(async (req, res, next) => {
 
 
 
-        res.status(STATUS_CODE.CREATED).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL })
+        res.status(STATUS_CODE.CREATED).json({ message: SUCCESS_MSG.SUCCESS_MESSAGES.OPERATION_SUCCESSFULL, notificationId: CreteNotification?._id })
     } catch (err) {
         console.log("&&&&&&&&&&", err);
         res.status(STATUS_CODE.SERVER_ERROR).json({ message: ERRORS.PROGRAMMING.SOME_ERROR, err })

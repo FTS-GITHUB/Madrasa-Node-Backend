@@ -280,8 +280,8 @@ const addPaymentMethod = catchAsync(async (req, res, next) => {
         let Notification = new NotificationModel({
             type: TransactionData.orderType,
             from: UserData?._id,
-            to: TransactionData.sellers,
-            source: TransactionData.orderType == "book" ? TransactionData?._id : TransactionData.sources[0],
+            to: TransactionData.sellers?.map(data => data?.userData?._id),
+            source:  TransactionData?._id,
             title: `${UserData?.firstName} make payment for ${TransactionData?.orderType}`
         })
         await Notification.save();
